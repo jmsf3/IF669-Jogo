@@ -1,4 +1,3 @@
-
 #include "backgrounds.h"
 #include "../../dep/include/raylib.h"
 #define LARG_JANELA 1000
