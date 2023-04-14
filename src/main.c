@@ -1,3 +1,5 @@
+#include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "./nave/nave.h"
 #include "./inimigos/inimigos.h"
@@ -15,7 +17,6 @@ int main()
     SetTargetFPS(FPS);
 
     int divisaoBackground = 0;
-    Texture2D backgroundTerra = LoadTexture("../res/background_terra.png");
     Texture2D backgroundEspaco = LoadTexture("../res/background_espaco.png");
 
     Nave naveACM;
@@ -24,25 +25,40 @@ int main()
     int numProjetilNave = 0;
     ProjetilNave *projetilNave = NULL;
 
+    int numInimigos = 0;
+    Inimigo *inimigos = NULL;
+
     while (!WindowShouldClose())
     {   
         // Atualização
         atualizarNave(&naveACM);
+        atualizarInimigos(&inimigos, &numInimigos);
         atualizarProjetil(naveACM, &projetilNave, &numProjetilNave);
-
-        divisaoBackground += VEL_BACKGROUND;
-        if (divisaoBackground > ALT_JANELA) divisaoBackground = 0;
+        
+        if (divisaoBackground > ALT_JANELA)
+            divisaoBackground = 0;
+        else
+            divisaoBackground += VEL_BACKGROUND;
 
         // Draw
         BeginDrawing();
 
-            DrawScrollingBackground(backgroundEspaco, divisaoBackground); // Background
+            // Background
+            DrawScrollingBackground(backgroundEspaco, divisaoBackground); 
 
-            DrawTextureRec(naveACM.textura, naveACM.source, naveACM.posicao, WHITE); // Nave
-
+            // Nave
+            DrawTextureRec(naveACM.textura, naveACM.source, naveACM.posicao, WHITE);
+            
+            // Projéteis da nave
             for (int i = 0; i < numProjetilNave; i++)
             {
-                DrawTextureV(projetilNave[i].textura, projetilNave[i].posicao, WHITE); // Projéteis da nave
+                DrawTextureV(projetilNave[i].textura, projetilNave[i].posicao, WHITE); 
+            }
+
+            // Inimigos
+            for (int i = 0; i < numInimigos; i++)
+            {
+                DrawTextureV(inimigos[i].textura, inimigos[i].posicao, WHITE); 
             }
 
         EndDrawing();
@@ -50,8 +66,8 @@ int main()
 
     // Dar unload nas texturas
     UnloadTexture(naveACM.textura);
+    for (int i = 0; i < numInimigos; i++) UnloadTexture(inimigos[i].textura);
     for (int i = 0; i < numProjetilNave; i++) UnloadTexture(projetilNave[i].textura);
-    UnloadTexture(backgroundTerra);
     UnloadTexture(backgroundEspaco);
 
     // Liberar memória alocada
