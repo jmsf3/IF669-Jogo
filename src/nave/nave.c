@@ -15,9 +15,9 @@
 
 void inicializarNave(Nave *nave)
 {
+    nave->textura = LoadTexture("../res/nave.png");
     nave->posicao.x = (LARG_JANELA - LARG_NAVE) / 2; nave->posicao.y = ALT_JANELA - 2 * ALT_NAVE;
     nave->source.x = LARG_NAVE; nave->source.y = 0; nave->source.width = LARG_NAVE; nave->source.height = ALT_NAVE;
-    nave->textura = LoadTexture("../res/nave.png");
 }
 
 void atualizarNave(Nave *nave)
@@ -50,17 +50,20 @@ void inicializarProjetil(Nave nave, ProjetilNave *projetil)
 
 void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil)
 {
+    // Disparo
     if (IsKeyPressed(KEY_SPACE))
     {
         // Calcular o intervalo de tempo percorrido desde o último disparo
         double dt;
         
         if (*numProjetil == 0)
+        {
             dt = INFINITY;
+        }
         else
         {
-            ProjetilNave ultimoProjetil = (*projetil)[*numProjetil - 1];
-            dt = GetTime() - ultimoProjetil.GetTime;
+            int i = *numProjetil - 1;
+            dt = GetTime() - ((*projetil)[i]).GetTime;
         }
         
         // Se o disparo for realizado
@@ -76,18 +79,28 @@ void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil)
             }
 
             *projetil = aux;
-            inicializarProjetil(nave, &(*projetil)[(*numProjetil)++]);
+            inicializarProjetil(nave, &((*projetil)[*numProjetil]));
+
+            (*numProjetil)++;
         }
     }
 
     // Movimentação
-    for (int i = 0; i < *numProjetil; i++)
-    {
-        if ((*projetil)[i].posicao.y > -ALT_PROJETIL)
-            (*projetil)[i].posicao.y -= VEL_PROJETIL;
-        else
+    for (int i = 0; i < *numProjetil; i++)  
+    {   
+        if (((*projetil)[i]).posicao.y > -ALT_PROJETIL)
         {
-            UnloadTexture((*projetil)[i].textura);
+            ((*projetil)[i]).posicao.y -= VEL_PROJETIL;
+        }
+    }
+
+    // Apagar projéteis que estão fora da tela
+    for (int i = 0; i < *numProjetil; i++)  
+    {
+        if (((*projetil)[i]).posicao.y <= -ALT_PROJETIL)
+        {
+            UnloadTexture(((*projetil)[i]).textura);
+            
             for (int j = i; j < *numProjetil - 1; j++)
             {
                 (*projetil)[j] = (*projetil)[j + 1];
@@ -107,7 +120,9 @@ void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil)
                 *projetil = aux;
             }
             else
+            {
                 *projetil = NULL;
+            }
 
             (*numProjetil)--;
         }

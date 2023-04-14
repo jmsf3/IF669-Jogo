@@ -4,16 +4,17 @@
 
 typedef struct
 {
-    Vector2 posicao;
-    Rectangle source;
-    Texture2D textura;
+    int hp; // Vida do inimigo
+    Vector2 posicao; // Posição da nave na tela
+    Rectangle source; // Sprite da nave que está sendo usada no momento
+    Texture2D textura; // Textura da nave
 } Nave;
 
 typedef struct
 {
-    double GetTime;
-    Vector2 posicao;
-    Texture2D textura;
+    double GetTime; // Instante que o projétil foi disparado
+    Vector2 posicao; // Posição do projétil na tela
+    Texture2D textura; // Textura do projétil
 } ProjetilNave;
 
 void inicializarNave(Nave *nave);
