@@ -4,11 +4,18 @@
 
 typedef struct
 {
-    int hp; // Vida do inimigo
+    int hp; // Vida da nave
     Vector2 posicao; // Posição da nave na tela
-    Rectangle source; // Sprite da nave que está sendo usada no momento
+    Rectangle source; // Sprite da nave que está sendo usado no momento
     Texture2D textura; // Textura da nave
 } Nave;
+
+typedef struct 
+{
+    Vector2 posicao; // Posição do propulsor na tela
+    Rectangle source; // Sprite do propulsor que está sendo usado no momento
+    Texture2D textura; // Textura do propulsor
+} Propulsor;
 
 typedef struct
 {
@@ -19,7 +26,9 @@ typedef struct
 
 void inicializarNave(Nave *nave);
 void atualizarNave(Nave *nave);
-void inicializarProjetilNave(Nave nave, ProjetilNave *projetil);
+void inicializarPropulsor(Propulsor **propulsor);
+void atualizarPropulsor(Propulsor *propulsor, Nave nave, int frames);
+void inicializarProjetilNave(Nave nave, ProjetilNave *projetilEsquerda, ProjetilNave *projetilDireita);
 void atualizarProjetilNave(Nave nave, ProjetilNave **projetil, int *numProjetil);
 
 #endif

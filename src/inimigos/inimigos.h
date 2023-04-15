@@ -5,8 +5,10 @@
 
 typedef struct 
 {
+    int hp; // Vida do inimigo
     int id; // Identificação do tipo de padrão de ataque que o inimigo segue
     Vector2 posicao; // Posição do inimigo na tela
+    Rectangle source; // Indica qual sprite está sendo usado no momento
     Texture2D textura; // Textura do inimigo
 } Inimigo;
 

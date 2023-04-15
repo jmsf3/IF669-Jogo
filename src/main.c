@@ -22,6 +22,9 @@ int main()
 
     Nave naveACM;
     inicializarNave(&naveACM);
+    
+    Propulsor *propulsor = NULL;
+    inicializarPropulsor(&propulsor);
 
     int numProjetilNave = 0;
     ProjetilNave *projetilNave = NULL;
@@ -36,6 +39,7 @@ int main()
     {   
         // Atualização
         atualizarNave(&naveACM);
+        atualizarPropulsor(propulsor, naveACM, frames);
         atualizarInimigos(&inimigos, &numInimigos, frames);
         atualizarProjetilNave(naveACM, &projetilNave, &numProjetilNave);
         atualizarProjetilInimigo(inimigos, numInimigos, naveACM, &projetilInimigo, &numProjetilInimigo, frames);
@@ -50,20 +54,26 @@ int main()
 
             // Background
             DrawScrollingBackground(backgroundEspaco, divisaoBackground); 
+            
+            // Inimigos
+            for (int i = 0; i < numInimigos; i++)
+            {
+                DrawTextureRec(inimigos[i].textura, inimigos[i].source, inimigos[i].posicao, WHITE); 
+            }
+
+            // Propulsores da nave
+            for (int i = 0; i < 2; i++)
+            {
+                DrawTextureRec(propulsor[i].textura, propulsor[i].source, propulsor[i].posicao, WHITE); 
+            }
 
             // Nave
             DrawTextureRec(naveACM.textura, naveACM.source, naveACM.posicao, WHITE);
-            
+
             // Projéteis da nave
             for (int i = 0; i < numProjetilNave; i++)
             {
                 DrawTextureV(projetilNave[i].textura, projetilNave[i].posicao, WHITE); 
-            }
-
-            // Inimigos
-            for (int i = 0; i < numInimigos; i++)
-            {
-                DrawTextureV(inimigos[i].textura, inimigos[i].posicao, WHITE); 
             }
 
             // Projéteis do inimigo
@@ -79,6 +89,7 @@ int main()
 
     // Dar unload nas texturas
     UnloadTexture(naveACM.textura);
+    for (int i = 0; i < 2; i++) UnloadTexture(propulsor[i].textura);
     for (int i = 0; i < numInimigos; i++) UnloadTexture(inimigos[i].textura);
     for (int i = 0; i < numProjetilNave; i++) UnloadTexture(projetilNave[i].textura);
     for (int i = 0; i < numProjetilInimigo; i++) UnloadTexture(projetilInimigo[i].textura);
@@ -86,6 +97,7 @@ int main()
 
     // Liberar memória alocada
     free(inimigos);
+    free(propulsor);
     free(projetilNave);
     free(projetilInimigo);
 

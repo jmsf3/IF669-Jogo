@@ -5,8 +5,8 @@
 #include "../nave/nave.h"
 #include "../../dep/include/raylib.h"
 #include "../../dep/include/raymath.h"
-#define LARG_INIMIGO 32 // Largura do sprite do inimigo
-#define ALT_INIMIGO 32 // Altura do sprite do inimigo
+#define LARG_INIMIGO 40 // Largura do sprite do inimigo
+#define ALT_INIMIGO 40 // Altura do sprite do inimigo
 #define LARG_PROJETIL 10 // Largura do sprite do projétil
 #define ALT_PROJETIL 10 // Altura do sprite do projétil
 #define LARG_JANELA 1000 // Largura da janela
@@ -34,6 +34,7 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     for (int i = *numInimigos; i < *numInimigos + 8; i++)
     {
         ((*inimigos)[i]).textura = LoadTexture("../res/inimigo.png");
+        ((*inimigos)[i]).source = (Rectangle) {0, 0, LARG_INIMIGO, ALT_INIMIGO};
     }
 
     // Escolher aleatóriamente o padrão de ataque dos inimigos que serão incialiazados
@@ -67,8 +68,20 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 
 void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 {
+    // Animação
+    for (int i = 0; i < *numInimigos; i++)
+    {
+        for (int j = 0; j < 2; j ++)
+        {        
+            if (frames % (2 * (FPS / 3)) == j * (FPS / 3))
+            {
+                ((*inimigos)[i]).source.y = j * ALT_INIMIGO;
+            }
+        }
+    }
+
     // Spawnar grupos de inimigos a cada 3 segundos
-    if (frames != 0 && frames % (3 * FPS) == 0)
+    if (frames % (3 * FPS) == 0)
         inicializarInimigos(inimigos, numInimigos);
 
     // Movimentação
@@ -81,8 +94,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
             int x = ((*inimigos)[i]).posicao.x + LARG_INIMIGO / 2;
             int y = 400 - pow(x, 2) / 350;
 
-            ((*inimigos)[i]).posicao.x = x - LARG_INIMIGO / 2;
-            ((*inimigos)[i]).posicao.y = y - ALT_INIMIGO / 2;
+            ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
         else if (((*inimigos)[i]).id == 1)
         {
@@ -91,8 +103,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
             int x = ((*inimigos)[i]).posicao.x + LARG_INIMIGO / 2;
             int y = 300 - pow(x - 500, 3) / 130000;
 
-            ((*inimigos)[i]).posicao.x = x - LARG_INIMIGO / 2;
-            ((*inimigos)[i]).posicao.y = y - ALT_INIMIGO / 2;
+            ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
         else if (((*inimigos)[i]).id == 2)
         {
@@ -101,8 +112,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
             int x = ((*inimigos)[i]).posicao.x + LARG_INIMIGO / 2;
             int y = 400 - pow(x - 1000, 2) / 350;
 
-            ((*inimigos)[i]).posicao.x = x - LARG_INIMIGO / 2;
-            ((*inimigos)[i]).posicao.y = y - ALT_INIMIGO / 2;
+            ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
         else if (((*inimigos)[i]).id == 3)
         {
@@ -110,9 +120,8 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
             int x = ((*inimigos)[i]).posicao.x + LARG_INIMIGO / 2;
             int y = 300 + pow(x - 500, 3) / 130000;
-
-            ((*inimigos)[i]).posicao.x = x - LARG_INIMIGO / 2;
-            ((*inimigos)[i]).posicao.y = y - ALT_INIMIGO / 2;
+            
+            ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
     }
 
@@ -172,7 +181,6 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
         {
             if (GetRandomValue(0, 1))
             {
-                printf("ai dento\n");
                 ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
 
                 if (aux == NULL)
@@ -233,7 +241,6 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
             (*numProjetil)--;
         }        
     }
-
 }
 
 void inicializarBoss(Boss *boss)
