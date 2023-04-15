@@ -2,14 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "inimigos.h"
+#include "../nave/nave.h"
 #include "../../dep/include/raylib.h"
+#include "../../dep/include/raymath.h"
 #define LARG_INIMIGO 32 // Largura do sprite do inimigo
 #define ALT_INIMIGO 32 // Altura do sprite do inimigo
+#define LARG_PROJETIL 10 // Largura do sprite do projétil
+#define ALT_PROJETIL 10 // Altura do sprite do projétil
 #define LARG_JANELA 1000 // Largura da janela
 #define ALT_JANELA 600 // Altura da janela
 #define VEL_INIMIGO 3 // Velocidade do inimigo
+#define VEL_PROJETIL 4 // Velocidade do projétil
 #define ESPACO 3 * LARG_INIMIGO // Espaço entre os inimigos durante a inicialização
-#define PORCENTAGEM_SPAWN 5 // Porcentagem de spawnar um grupo de inimigos
+#define FPS 60 // Target FPS
 
 void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 {
@@ -60,10 +65,10 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     *numInimigos += 8;
 }
 
-void atualizarInimigos(Inimigo **inimigos, int *numInimigos)
+void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 {
-    // Spawnar aleatoriamente grupos de inimigos 
-    if (IsKeyPressed(KEY_S))
+    // Spawnar grupos de inimigos a cada 3 segundos
+    if (frames != 0 && frames % (3 * FPS) == 0)
         inicializarInimigos(inimigos, numInimigos);
 
     // Movimentação
@@ -114,9 +119,9 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos)
     // Apagar inimigos que estão fora da tela
     for (int i = 0; i < *numInimigos; i++)
     {
-        int c0 = ((*inimigos)[i]).id == 0 && ((*inimigos)[i]).posicao.x > LARG_JANELA;
+        int c0 = ((*inimigos)[i]).id == 0 && ((*inimigos)[i]).posicao.x < -LARG_INIMIGO;
         int c1 = ((*inimigos)[i]).id == 1 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
-        int c2 = ((*inimigos)[i]).id == 2 && ((*inimigos)[i]).posicao.x < -LARG_INIMIGO;
+        int c2 = ((*inimigos)[i]).id == 2 && ((*inimigos)[i]).posicao.x > LARG_JANELA;
         int c3 = ((*inimigos)[i]).id == 3 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
 
         if (c0 || c1 || c2 || c3)
@@ -149,6 +154,86 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos)
             (*numInimigos)--;
         }
     }
+}
+
+void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave nave)
+{
+    projetil->textura = LoadTexture("../res/projetil_inimigo.png");
+    projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, inimigo.posicao));
+    projetil->posicao = Vector2Add(inimigo.posicao, Vector2Scale(projetil->direcao, VEL_PROJETIL));
+}
+
+void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, ProjetilInimigo **projetil, int *numProjetil, int frames)
+{
+    // Disparar a cada 3 segundos
+    if (frames % (3 * FPS) == 0)
+    {
+        for (int i = 0; i < numInimigos; i++)
+        {
+            if (GetRandomValue(0, 1))
+            {
+                printf("ai dento\n");
+                ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
+
+                if (aux == NULL)
+                {
+                    free(*projetil);
+                    free(inimigos);
+                    exit(1);
+                }
+
+                *projetil = aux;
+                incializarProjetilInimigo(&((*projetil)[*numProjetil]), inimigos[i], nave);
+                (*numProjetil)++;
+            }
+        }
+    }
+
+    // Movimentação
+    for (int i = 0; i < *numProjetil; i++)
+    {
+        ((*projetil)[i]).posicao = Vector2Add(((*projetil)[i]).posicao, Vector2Scale(((*projetil)[i]).direcao, VEL_PROJETIL));
+    }
+
+    // Remover projéteis que estão fora da tela
+    for (int i = 0; i < *numProjetil; i++)
+    {
+        int c0 = ((*projetil)[i]).posicao.x < -LARG_PROJETIL;
+        int c1 = ((*projetil)[i]).posicao.x > LARG_JANELA;
+        int c2 = ((*projetil)[i]).posicao.y > ALT_JANELA;
+
+        if (c0 || c1 || c2)
+        {
+            UnloadTexture(((*projetil)[i]).textura);
+
+            for (int j = i; j < *numProjetil - 1; j++)
+            {
+                (*projetil)[j] = (*projetil)[j + 1];
+            }
+
+            if (*numProjetil > 1)
+            {
+                ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil - 1) * sizeof(ProjetilInimigo));
+
+                if (aux == NULL)
+                {
+                    printf("Erro ao alocar a memória.\n");
+                    free(*projetil);
+                    free(inimigos);
+                    exit(1);
+                }
+                
+                *projetil = aux;
+            }
+            else
+            {
+                *projetil = NULL;
+            }
+
+            (*numProjetil)--;
+        }        
+    }
+
 }
 
 void inicializarBoss(Boss *boss)
