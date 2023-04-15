@@ -9,7 +9,7 @@
 #define ALT_PROJETIL 30 // Altura do sprite do projétil
 #define LARG_JANELA 1000 // Largura da janela
 #define ALT_JANELA 600 // Altura da janela
-#define VEL_NAVE 3 // Velocidade da nave
+#define VEL_NAVE 4 // Velocidade da nave
 #define VEL_PROJETIL 5 // Velocidade do projétil
 #define INTERVALO_DISPARO 0.25 // Tempo mínimo entre um disparo e outro em segundos
 
@@ -41,14 +41,14 @@ void atualizarNave(Nave *nave)
         nave->posicao.y += VEL_NAVE;
 }
 
-void inicializarProjetil(Nave nave, ProjetilNave *projetil)
+void inicializarProjetilNave(Nave nave, ProjetilNave *projetil)
 {
     projetil->GetTime = GetTime();
     projetil->textura = LoadTexture("../res/projetil_nave.png");
     projetil->posicao.x = nave.posicao.x + (LARG_NAVE - LARG_PROJETIL) / 2; projetil->posicao.y = nave.posicao.y - ALT_PROJETIL;
 }
 
-void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil)
+void atualizarProjetilNave(Nave nave, ProjetilNave **projetil, int *numProjetil)
 {
     // Disparo
     if (IsKeyPressed(KEY_SPACE))
@@ -79,7 +79,7 @@ void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil)
             }
 
             *projetil = aux;
-            inicializarProjetil(nave, &((*projetil)[*numProjetil]));
+            inicializarProjetilNave(nave, &((*projetil)[*numProjetil]));
 
             (*numProjetil)++;
         }

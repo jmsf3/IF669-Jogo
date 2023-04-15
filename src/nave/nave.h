@@ -19,7 +19,7 @@ typedef struct
 
 void inicializarNave(Nave *nave);
 void atualizarNave(Nave *nave);
-void inicializarProjetil(Nave nave, ProjetilNave *projetil);
-void atualizarProjetil(Nave nave, ProjetilNave **projetil, int *numProjetil);
+void inicializarProjetilNave(Nave nave, ProjetilNave *projetil);
+void atualizarProjetilNave(Nave nave, ProjetilNave **projetil, int *numProjetil);
 
 #endif
