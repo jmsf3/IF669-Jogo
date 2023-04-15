@@ -17,7 +17,7 @@ A estrutura do nosso projeto está segmentada da seguinte maneira:
   * ***backgrounds***
 
 # Compilação
-Para compilar o projeto em um ambiente ***Linux*** basta abrir o terminal na pasta src do projeto e executar a linha de comando abaixo:
+Para compilar o projeto em um ambiente ***Linux*** basta abrir o terminal na pasta ***src*** do projeto e executar a linha de comando abaixo:
 ```
 gcc ./main.c ./nave/nave.c ./inimigos/inimigos.c ./backgrounds/backgrounds.c -o projeto-jogo -I ../dep/include/ -L ../dep/lib/ -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 ```
