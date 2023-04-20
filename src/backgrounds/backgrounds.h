@@ -4,5 +4,6 @@
 
 void DrawStaticBackground(Texture2D background);
 void DrawScrollingBackground(Texture2D background, int divisaoBackground);
+void atualizarBackground(int *divisao);
 
 #endif
