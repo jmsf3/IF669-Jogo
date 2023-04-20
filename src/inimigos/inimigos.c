@@ -5,16 +5,17 @@
 #include "../nave/nave.h"
 #include "../../dep/include/raylib.h"
 #include "../../dep/include/raymath.h"
-#define LARG_INIMIGO 40 // Largura do sprite do inimigo
-#define ALT_INIMIGO 40 // Altura do sprite do inimigo
-#define LARG_PROJETIL 10 // Largura do sprite do projétil
-#define ALT_PROJETIL 10 // Altura do sprite do projétil
-#define LARG_JANELA 1000 // Largura da janela
-#define ALT_JANELA 600 // Altura da janela
-#define VEL_INIMIGO 3 // Velocidade do inimigo
-#define VEL_PROJETIL 4 // Velocidade do projétil
-#define ESPACO 3 * LARG_INIMIGO // Espaço entre os inimigos durante a inicialização
-#define FPS 60 // Target FPS
+#define FPS 60
+#define ESCALA 5
+#define ALT_INIMIGO 8 * ESCALA
+#define LARG_INIMIGO 8 * ESCALA
+#define ALT_PROJETIL 2 * ESCALA 
+#define LARG_PROJETIL 2 * ESCALA
+#define ALT_JANELA 600
+#define LARG_JANELA 1000 
+#define VEL_INIMIGO 3 
+#define VEL_PROJETIL 4
+#define ESPACO 3 * LARG_INIMIGO
 
 void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 {
@@ -31,10 +32,14 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     *inimigos = aux;
 
     // Dar load nas texturas dos inimigos
+    Image img = LoadImage("../res/inimigos/inimigo.png");
+    Image up = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
+    Image down = ImageFromImage(img, (Rectangle) {0, 8, 8, 8});
+
     for (int i = *numInimigos; i < *numInimigos + 8; i++)
     {
-        ((*inimigos)[i]).textura = LoadTexture("../res/inimigo.png");
-        ((*inimigos)[i]).source = (Rectangle) {0, 0, LARG_INIMIGO, ALT_INIMIGO};
+        ((*inimigos)[i]).spritesheet[0] = LoadTextureFromImage(up);
+        ((*inimigos)[i]).spritesheet[1] = LoadTextureFromImage(down);
     }
 
     // Escolher aleatóriamente o padrão de ataque dos inimigos que serão incialiazados
@@ -44,7 +49,7 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     for (int i = 0; i < 4; i++)
     {
         int j = *numInimigos + i;
-        ((*inimigos)[j]).id = pdr;
+        ((*inimigos)[j]).pdrAtq = pdr;
 
         if (pdr == 0)
             ((*inimigos)[j]).posicao.x = (LARG_JANELA / 2 + i * ESPACO) - LARG_INIMIGO / 2; 
@@ -55,7 +60,7 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     for (int i = 4; i < 8; i++)
     {
         int j = *numInimigos + i;
-        ((*inimigos)[j]).id = pdr + 2;
+        ((*inimigos)[j]).pdrAtq = pdr + 2;
 
         if (pdr == 0)
             ((*inimigos)[j]).posicao.x = (LARG_JANELA / 2 - (i - 4) * ESPACO) - LARG_INIMIGO / 2; 
@@ -68,6 +73,9 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 
 void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 {
+    // Spawnar grupos de inimigos a cada 5 segundos
+    if (frames % (5 * FPS) == 0) inicializarInimigos(inimigos, numInimigos);
+
     // Animação
     for (int i = 0; i < *numInimigos; i++)
     {
@@ -75,19 +83,15 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
         {        
             if (frames % (2 * (FPS / 3)) == j * (FPS / 3))
             {
-                ((*inimigos)[i]).source.y = j * ALT_INIMIGO;
+                ((*inimigos)[i]).sprite = ((*inimigos)[i]).spritesheet[j];
             }
         }
     }
 
-    // Spawnar grupos de inimigos a cada 3 segundos
-    if (frames % (3 * FPS) == 0)
-        inicializarInimigos(inimigos, numInimigos);
-
     // Movimentação
     for (int i = 0; i < *numInimigos; i++)
     {
-        if (((*inimigos)[i]).id == 0)
+        if (((*inimigos)[i]).pdrAtq == 0)
         {
             ((*inimigos)[i]).posicao.x += -VEL_INIMIGO;
 
@@ -96,7 +100,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
             ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
-        else if (((*inimigos)[i]).id == 1)
+        else if (((*inimigos)[i]).pdrAtq == 1)
         {
             ((*inimigos)[i]).posicao.x += -VEL_INIMIGO;
 
@@ -105,7 +109,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
             ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
-        else if (((*inimigos)[i]).id == 2)
+        else if (((*inimigos)[i]).pdrAtq == 2)
         {
             ((*inimigos)[i]).posicao.x += VEL_INIMIGO;
 
@@ -114,7 +118,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
             ((*inimigos)[i]).posicao = (Vector2) {x - LARG_INIMIGO / 2, y - ALT_INIMIGO / 2};
         }
-        else if (((*inimigos)[i]).id == 3)
+        else if (((*inimigos)[i]).pdrAtq == 3)
         {
             ((*inimigos)[i]).posicao.x += VEL_INIMIGO;
 
@@ -128,14 +132,14 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
     // Apagar inimigos que estão fora da tela
     for (int i = 0; i < *numInimigos; i++)
     {
-        int c0 = ((*inimigos)[i]).id == 0 && ((*inimigos)[i]).posicao.x < -LARG_INIMIGO;
-        int c1 = ((*inimigos)[i]).id == 1 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
-        int c2 = ((*inimigos)[i]).id == 2 && ((*inimigos)[i]).posicao.x > LARG_JANELA;
-        int c3 = ((*inimigos)[i]).id == 3 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
+        int c0 = ((*inimigos)[i]).pdrAtq == 0 && ((*inimigos)[i]).posicao.x < -LARG_INIMIGO;
+        int c1 = ((*inimigos)[i]).pdrAtq == 1 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
+        int c2 = ((*inimigos)[i]).pdrAtq == 2 && ((*inimigos)[i]).posicao.x > LARG_JANELA;
+        int c3 = ((*inimigos)[i]).pdrAtq == 3 && ((*inimigos)[i]).posicao.y > ALT_JANELA;
 
         if (c0 || c1 || c2 || c3)
         {
-            UnloadTexture(((*inimigos)[i]).textura);
+            UnloadTexture(((*inimigos)[i]).sprite);
 
             for (int j = i; j < *numInimigos - 1; j++)
             {
@@ -167,15 +171,15 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
 void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave nave)
 {
-    projetil->textura = LoadTexture("../res/projetil_inimigo.png");
+    projetil->sprite = LoadTexture("../res/inimigos/projetil_inimigo.png");
     projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, inimigo.posicao));
     projetil->posicao = Vector2Add(inimigo.posicao, Vector2Scale(projetil->direcao, VEL_PROJETIL));
 }
 
 void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, ProjetilInimigo **projetil, int *numProjetil, int frames)
 {
-    // Disparar a cada 3 segundos
-    if (frames % (3 * FPS) == 0)
+    // Disparar a cada 5 segundos
+    if (frames % (5 * FPS) == 0)
     {
         for (int i = 0; i < numInimigos; i++)
         {
@@ -212,7 +216,7 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
 
         if (c0 || c1 || c2)
         {
-            UnloadTexture(((*projetil)[i]).textura);
+            UnloadTexture(((*projetil)[i]).sprite);
 
             for (int j = i; j < *numProjetil - 1; j++)
             {
@@ -252,3 +256,22 @@ void atualizarBoss(Boss *boss)
 {
 
 }
+
+void DrawEnemy(Inimigo *inimigos, int numInimigos)
+{
+    // Inimigos
+    for (int i = 0; i < numInimigos; i++)
+    {
+        DrawTextureEx(inimigos[i].sprite, inimigos[i].posicao, 0, ESCALA, WHITE); 
+    }
+}
+
+void DrawEnemyProjectile(ProjetilInimigo *projetil, int numProjetil)
+{
+    // Projéteis do inimigo
+    for (int i = 0; i < numProjetil; i++)
+    {
+        DrawTextureEx(projetil[i].sprite, projetil[i].posicao, 0, ESCALA, WHITE); 
+    }
+}
+
