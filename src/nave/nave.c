@@ -3,35 +3,199 @@
 #include <stdlib.h>
 #include "nave.h"
 #include "../../dep/include/raylib.h"
-#define LARG_NAVE 40 // Largura do sprite da nave
-#define ALT_NAVE 40 // Altura do sprite da nave
-#define LARG_PROJETIL 15 // Largura do sprite do projétil
-#define ALT_PROJETIL 30 // Altura do sprite do projétil
-#define LARG_PROPULSOR 5 // Largura do sprite do propulsor
-#define ALT_PROPULSOR 15 // Altura do sprite do propulsor
-#define LARG_JANELA 1000 // Largura da janela
-#define ALT_JANELA 600 // Altura da janela
-#define VEL_NAVE 4 // Velocidade da nave
-#define VEL_PROJETIL 5 // Velocidade do projétil
-#define INTERVALO_DISPARO 0.25 // Tempo mínimo entre um disparo e outro em segundos
 #define FPS 60
+#define ESCALA 5
+#define ALT_NAVE 8 * ESCALA
+#define LARG_NAVE 8 * ESCALA 
+#define ALT_PROJETIL 10 * ESCALA 
+#define LARG_PROJETIL 3 * ESCALA 
+#define ALT_PROPULSOR 3 * ESCALA
+#define LARG_PROPULSOR 1 * ESCALA
+#define ALT_JANELA 600 
+#define LARG_JANELA 1000 
+#define VEL_NAVE 4
+#define VEL_PROJETIL 5 
+#define INTERVALO_DISPARO 0.25
+
+void inicializarPropulsor(Propulsor *propulsor)
+{
+    Image img = LoadImage("../res/nave/propulsores.png");
+
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            Image sprite = ImageFromImage(img, (Rectangle) {j, 0, 1, 3});
+            propulsor[i].spritesheet[j] = LoadTextureFromImage(sprite);
+        }
+    }
+}
+
+void atualizarPropulsor(Nave *nave, int frames, char sprite)
+{
+    // Animação
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 4; j ++)
+        {        
+            if (frames % (4 * (FPS / 10)) == j * (FPS / 10))
+            {
+                nave->polpulsor[i].sprite = nave->polpulsor[i].spritesheet[j];
+            }
+        }
+    }
+
+    // Posição
+    if (sprite == 'l')
+    {
+        nave->polpulsor[0].posicao.x = nave->posicao.x + 2 * 5;
+        nave->polpulsor[1].posicao.x = nave->posicao.x + 4 * 5;
+       
+    }
+    else if (sprite == 'r')
+    {
+        nave->polpulsor[0].posicao.x = nave->posicao.x + 3 * 5;
+        nave->polpulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+    }
+    else
+    {
+        nave->polpulsor[0].posicao.x = nave->posicao.x + 2 * 5;
+        nave->polpulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+    }
+
+    nave->polpulsor[0].posicao.y = nave->polpulsor[1].posicao.y = nave->posicao.y + ALT_NAVE;
+}
+
+void inicializarProjetilNave(Nave *nave)
+{
+    nave->projetil[nave->numProjetil].GetTime = GetTime();
+    nave->projetil[nave->numProjetil].sprite = LoadTexture("../res/nave/projetil_nave.png");
+    nave->projetil[nave->numProjetil].posicao = (Vector2) {nave->posicao.x, nave->posicao.y - 2 * 5};
+
+    nave->projetil[nave->numProjetil + 1].GetTime = GetTime();
+    nave->projetil[nave->numProjetil + 1].sprite = LoadTexture("../res/nave/projetil_nave.png");
+    nave->projetil[nave->numProjetil + 1].posicao = (Vector2) {nave->posicao.x + 5 * 5, nave->posicao.y - 2 * 5};
+}
+
+void atualizarProjetilNave(Nave *nave)
+{
+    // Disparar
+    if (IsKeyPressed(KEY_SPACE))
+    {
+        // Calcular o intervalo de tempo percorrido desde o último disparo
+        double dt;
+        
+        if (nave->numProjetil == 0)
+        {
+            dt = INFINITY;
+        }
+        else
+        {
+            int i = nave->numProjetil - 1;
+            dt = GetTime() - nave->projetil[i].GetTime;
+        }
+        
+        // Se o disparo for realizado
+        if (dt > INTERVALO_DISPARO)
+        {
+            ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil + 2) * sizeof(ProjetilNave));
+
+            if (aux == NULL)
+            {
+                printf("Erro ao alocar a memória.\n");
+                free(nave->projetil);
+                exit(1);
+            }
+
+            nave->projetil = aux;
+            inicializarProjetilNave(nave);
+
+            nave->numProjetil += 2;
+        }
+    }
+
+    // Movimentação
+    for (int i = 0; i < nave->numProjetil; i++)  
+    {   
+        nave->projetil[i].posicao.y -= VEL_PROJETIL;
+    }
+
+    // Apagar projéteis que estão fora da tela
+    for (int i = 0; i < nave->numProjetil; i++)  
+    {
+        if (nave->projetil[i].posicao.y <= -ALT_PROJETIL)
+        {
+            UnloadTexture(nave->projetil[i].sprite);
+            
+            for (int j = i; j < nave->numProjetil - 1; j++)
+            {
+                nave->projetil[j] = nave->projetil[j + 1];
+            }
+
+            if (nave->numProjetil > 1)
+            {
+                ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil - 1) * sizeof(ProjetilNave));
+
+                if (aux == NULL)
+                {
+                    printf("Erro ao alocar a memória.\n");
+                    free(nave->projetil);
+                    exit(1);
+                }
+                
+                nave->projetil = aux;
+            }
+            else
+            {
+                nave->projetil = NULL;
+            }
+
+            (nave->numProjetil)--;
+        }
+    }
+}
 
 void inicializarNave(Nave *nave)
 {
-    nave->textura = LoadTexture("../res/nave.png");
+    inicializarPropulsor(nave->polpulsor);
+
     nave->posicao = (Vector2) {(LARG_JANELA - LARG_NAVE) / 2, ALT_JANELA - 2 * ALT_NAVE};
-    nave->source = (Rectangle) {LARG_NAVE, 0, LARG_NAVE, ALT_NAVE};
+
+    Image img = LoadImage("../res/nave/nave.png");
+    Image left = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
+    Image middle = ImageFromImage(img, (Rectangle) {8, 0, 8, 8});
+    Image right = ImageFromImage(img, (Rectangle) {16, 0, 8, 8});
+
+    nave->spritesheet[0] = LoadTextureFromImage(left);
+    nave->spritesheet[1] = LoadTextureFromImage(middle);
+    nave->spritesheet[2] = LoadTextureFromImage(right);
+
+    nave->numProjetil = 0;
+    nave->projetil = NULL;
+    
+    nave->hp = 3;
 }
 
-void atualizarNave(Nave *nave)
+void atualizarNave(Nave *nave, int frames)
 {
-    // Animação
+    char sprite;
+    
+    // Animação da nave
     if (IsKeyDown(KEY_LEFT))
-        nave->source.x = 0;
+    {
+        nave->sprite = nave->spritesheet[0];
+        sprite = 'l';
+    }
     else if (IsKeyDown(KEY_RIGHT))
-        nave->source.x = 2 * LARG_NAVE;
+    {
+        nave->sprite = nave->spritesheet[2];
+        sprite = 'r';
+    }
     else 
-        nave->source.x = LARG_NAVE;
+    {
+        nave->sprite = nave->spritesheet[1];
+        sprite = 'm';
+    }
 
     // Movimentação
     if (IsKeyDown(KEY_LEFT) && nave->posicao.x > 0) 
@@ -42,150 +206,30 @@ void atualizarNave(Nave *nave)
         nave->posicao.y -= VEL_NAVE;
     if (IsKeyDown(KEY_DOWN) && nave->posicao.y < ALT_JANELA - ALT_NAVE)
         nave->posicao.y += VEL_NAVE;
+    
+     // Animação dos propulsores 
+    atualizarPropulsor(nave, frames, sprite);
+
+    // Projéteis
+    atualizarProjetilNave(nave);
 }
 
-void inicializarPropulsor(Propulsor **propulsor)
+void DrawShip(Nave nave)
 {
-    Propulsor *aux = (Propulsor *) malloc(2 * sizeof(Propulsor));
+    // Nave
+    DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA, WHITE);
 
-    if (aux == NULL)
-    {
-        printf("Erro ao alocar memória.\n");
-        free(*propulsor);
-        exit(1);
-    }
-
-    *propulsor = aux;
-
+    // Propulsores da nave
     for (int i = 0; i < 2; i++)
     {
-        ((*propulsor)[i]).textura = LoadTexture("../res/propulsores.png");
-        ((*propulsor)[i]).source = (Rectangle) {0, 0, LARG_PROPULSOR, ALT_PROPULSOR};
+        DrawTextureEx(nave.polpulsor[i].sprite, nave.polpulsor[i].posicao, 0, ESCALA, WHITE);
     }
 }
 
-void atualizarPropulsor(Propulsor *propulsor, Nave nave, int frames)
+void DrawShipProjectile(Nave nave)
 {
-    // Animação
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < nave.numProjetil; i++)
     {
-        for (int j = 0; j < 4; j ++)
-        {        
-            if (frames % (4 * (FPS / 10)) == j * (FPS / 10))
-            {
-                propulsor[i].source.x = j * LARG_PROPULSOR;
-            }
-        }
-    }
-
-    // Posição
-    if (nave.source.x == LARG_NAVE)
-    {
-        propulsor[0].posicao.x = nave.posicao.x + 2 * 5;
-        propulsor[1].posicao.x = nave.posicao.x + 5 * 5;
-    }
-    else if (nave.source.x == 2 * LARG_NAVE)
-    {
-        propulsor[0].posicao.x = nave.posicao.x + 3 * 5;
-        propulsor[1].posicao.x = nave.posicao.x + 5 * 5;
-    }
-    else
-    {
-        propulsor[0].posicao.x = nave.posicao.x + 2 * 5;
-        propulsor[1].posicao.x = nave.posicao.x + 4 * 5;
-    }
-
-    propulsor[0].posicao.y = propulsor[1].posicao.y = nave.posicao.y + ALT_NAVE;
-}
-
-void inicializarProjetilNave(Nave nave, ProjetilNave *projetilEsquerda, ProjetilNave *projetilDireita)
-{
-    projetilEsquerda->GetTime = GetTime();
-    projetilEsquerda->textura = LoadTexture("../res/projetil_nave.png");
-    projetilEsquerda->posicao = (Vector2) {nave.posicao.x, nave.posicao.y - 2 * 5};
-
-    projetilDireita->GetTime = GetTime();
-    projetilDireita->textura = LoadTexture("../res/projetil_nave.png");
-    projetilDireita->posicao = (Vector2) {nave.posicao.x + 5 * 5, nave.posicao.y - 2 * 5};
-}
-
-void atualizarProjetilNave(Nave nave, ProjetilNave **projetil, int *numProjetil)
-{
-    // Disparo
-    if (IsKeyPressed(KEY_SPACE))
-    {
-        // Calcular o intervalo de tempo percorrido desde o último disparo
-        double dt;
-        
-        if (*numProjetil == 0)
-        {
-            dt = INFINITY;
-        }
-        else
-        {
-            int i = *numProjetil - 1;
-            dt = GetTime() - ((*projetil)[i]).GetTime;
-        }
-        
-        // Se o disparo for realizado
-        if (dt > INTERVALO_DISPARO)
-        {
-            ProjetilNave *aux = (ProjetilNave *) realloc(*projetil, (*numProjetil + 2) * sizeof(ProjetilNave));
-
-            if (aux == NULL)
-            {
-                printf("Erro ao alocar a memória.\n");
-                free(*projetil);
-                exit(1);
-            }
-
-            *projetil = aux;
-            inicializarProjetilNave(nave, &((*projetil)[*numProjetil]), &((*projetil)[*numProjetil + 1]));
-
-            *numProjetil += 2;
-        }
-    }
-
-    // Movimentação
-    for (int i = 0; i < *numProjetil; i++)  
-    {   
-        if (((*projetil)[i]).posicao.y > -ALT_PROJETIL)
-        {
-            ((*projetil)[i]).posicao.y -= VEL_PROJETIL;
-        }
-    }
-
-    // Apagar projéteis que estão fora da tela
-    for (int i = 0; i < *numProjetil; i++)  
-    {
-        if (((*projetil)[i]).posicao.y <= -ALT_PROJETIL)
-        {
-            UnloadTexture(((*projetil)[i]).textura);
-            
-            for (int j = i; j < *numProjetil - 1; j++)
-            {
-                (*projetil)[j] = (*projetil)[j + 1];
-            }
-
-            if (*numProjetil > 1)
-            {
-                ProjetilNave *aux = (ProjetilNave *) realloc(*projetil, (*numProjetil - 1) * sizeof(ProjetilNave));
-
-                if (aux == NULL)
-                {
-                    printf("Erro ao alocar a memória.\n");
-                    free(*projetil);
-                    exit(1);
-                }
-                
-                *projetil = aux;
-            }
-            else
-            {
-                *projetil = NULL;
-            }
-
-            (*numProjetil)--;
-        }
+        DrawTextureEx(nave.projetil[i].sprite, nave.projetil[i].posicao, 0, ESCALA, WHITE); 
     }
 }
