@@ -40,7 +40,7 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
         {        
             if (frames % (4 * (FPS / 10)) == j * (FPS / 10))
             {
-                nave->polpulsor[i].sprite = nave->polpulsor[i].spritesheet[j];
+                nave->propulsor[i].sprite = nave->propulsor[i].spritesheet[j];
             }
         }
     }
@@ -48,22 +48,22 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
     // Posição
     if (sprite == 'l')
     {
-        nave->polpulsor[0].posicao.x = nave->posicao.x + 2 * 5;
-        nave->polpulsor[1].posicao.x = nave->posicao.x + 4 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * 5;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 4 * 5;
        
     }
     else if (sprite == 'r')
     {
-        nave->polpulsor[0].posicao.x = nave->posicao.x + 3 * 5;
-        nave->polpulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 3 * 5;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * 5;
     }
     else
     {
-        nave->polpulsor[0].posicao.x = nave->posicao.x + 2 * 5;
-        nave->polpulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * 5;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * 5;
     }
 
-    nave->polpulsor[0].posicao.y = nave->polpulsor[1].posicao.y = nave->posicao.y + ALT_NAVE;
+    nave->propulsor[0].posicao.y = nave->propulsor[1].posicao.y = nave->posicao.y + ALT_NAVE;
 }
 
 void inicializarProjetilNave(Nave *nave)
@@ -157,7 +157,7 @@ void atualizarProjetilNave(Nave *nave)
 
 void inicializarNave(Nave *nave)
 {
-    inicializarPropulsor(nave->polpulsor);
+    inicializarPropulsor(nave->propulsor);
 
     nave->posicao = (Vector2) {(LARG_JANELA - LARG_NAVE) / 2, ALT_JANELA - 2 * ALT_NAVE};
 
@@ -169,11 +169,17 @@ void inicializarNave(Nave *nave)
     nave->spritesheet[0] = LoadTextureFromImage(left);
     nave->spritesheet[1] = LoadTextureFromImage(middle);
     nave->spritesheet[2] = LoadTextureFromImage(right);
+    nave->sprite = nave->spritesheet[1];
 
     nave->numProjetil = 0;
     nave->projetil = NULL;
     
     nave->hp = 3;
+
+    UnloadImage(img);
+    UnloadImage(left);
+    UnloadImage(middle);
+    UnloadImage(right);
 }
 
 void atualizarNave(Nave *nave, int frames)
@@ -222,7 +228,7 @@ void DrawShip(Nave nave)
     // Propulsores da nave
     for (int i = 0; i < 2; i++)
     {
-        DrawTextureEx(nave.polpulsor[i].sprite, nave.polpulsor[i].posicao, 0, ESCALA, WHITE);
+        DrawTextureEx(nave.propulsor[i].sprite, nave.propulsor[i].posicao, 0, ESCALA, WHITE);
     }
 }
 

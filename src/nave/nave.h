@@ -23,7 +23,7 @@ typedef struct
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
     Texture2D spritesheet[3]; // Spritesheet
-    Propulsor polpulsor[2]; // Propulsores
+    Propulsor propulsor[2]; // Propulsores
     ProjetilNave *projetil; // Projéteis
 } Nave;
 

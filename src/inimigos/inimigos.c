@@ -69,12 +69,16 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     }
 
     *numInimigos += 8;
+
+    UnloadImage(img);
+    UnloadImage(up);
+    UnloadImage(down);
 }
 
 void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 {
-    // Spawnar grupos de inimigos a cada 5 segundos
-    if (frames % (5 * FPS) == 0) inicializarInimigos(inimigos, numInimigos);
+    // Spawnar grupos de inimigos a cada 10 segundos
+    if (frames % (10 * FPS) == 0) inicializarInimigos(inimigos, numInimigos);
 
     // Animação
     for (int i = 0; i < *numInimigos; i++)
