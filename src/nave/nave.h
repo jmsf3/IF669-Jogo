@@ -11,7 +11,7 @@ typedef struct
 
 typedef struct
 {
-    double GetTime; // Instante de disparo
+    double tDisparo; // Instante de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
 } ProjetilNave;
@@ -20,6 +20,9 @@ typedef struct
 {
     int hp; // HP
     int numProjetil; // Número de projéteis
+    double tInvencivel; // Tempo de invencibilidade
+    Sound hit; // Som de hit
+    Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
     Texture2D spritesheet[3]; // Spritesheet

@@ -7,6 +7,8 @@ typedef struct
 {
     int hp; // HP
     int pdrAtq; // Padrão de ataque
+    Sound morte; // Som de morte
+    Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
     Texture2D spritesheet[2]; // Spritesheet

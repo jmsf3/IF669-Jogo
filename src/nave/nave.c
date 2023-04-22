@@ -27,8 +27,11 @@ void inicializarPropulsor(Propulsor *propulsor)
         {
             Image sprite = ImageFromImage(img, (Rectangle) {j, 0, 1, 3});
             propulsor[i].spritesheet[j] = LoadTextureFromImage(sprite);
+            UnloadImage(sprite);
         }
     }
+
+    UnloadImage(img);
 }
 
 void atualizarPropulsor(Nave *nave, int frames, char sprite)
@@ -68,11 +71,11 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
 
 void inicializarProjetilNave(Nave *nave)
 {
-    nave->projetil[nave->numProjetil].GetTime = GetTime();
+    nave->projetil[nave->numProjetil].tDisparo = GetTime();
     nave->projetil[nave->numProjetil].sprite = LoadTexture("../res/nave/projetil_nave.png");
     nave->projetil[nave->numProjetil].posicao = (Vector2) {nave->posicao.x, nave->posicao.y - 2 * 5};
 
-    nave->projetil[nave->numProjetil + 1].GetTime = GetTime();
+    nave->projetil[nave->numProjetil + 1].tDisparo = GetTime();
     nave->projetil[nave->numProjetil + 1].sprite = LoadTexture("../res/nave/projetil_nave.png");
     nave->projetil[nave->numProjetil + 1].posicao = (Vector2) {nave->posicao.x + 5 * 5, nave->posicao.y - 2 * 5};
 }
@@ -92,12 +95,15 @@ void atualizarProjetilNave(Nave *nave)
         else
         {
             int i = nave->numProjetil - 1;
-            dt = GetTime() - nave->projetil[i].GetTime;
+            dt = GetTime() - nave->projetil[i].tDisparo;
         }
         
         // Se o disparo for realizado
         if (dt > INTERVALO_DISPARO)
         {
+            // Efeito sonoro
+            PlaySound(nave->disparo);
+
             ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil + 2) * sizeof(ProjetilNave));
 
             if (aux == NULL)
@@ -173,6 +179,9 @@ void inicializarNave(Nave *nave)
 
     nave->numProjetil = 0;
     nave->projetil = NULL;
+
+    nave->disparo = LoadSound("../res/sounds/disparo_nave.ogg");
+    nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
     
     nave->hp = 3;
 

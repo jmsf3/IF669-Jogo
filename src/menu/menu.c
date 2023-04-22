@@ -67,6 +67,9 @@ void DrawLogo(Texture2D logo)
 void menu(int *play)
 {
     // Inicialização
+    Music music = LoadMusicStream("../res/sounds/musica_menu.ogg");
+    PlayMusicStream(music);
+
     Texture2D logo = LoadTexture("../res/interface/logo_acm.png");
     Texture2D background = LoadTexture("../res/backgrounds/background_espaco.png");
 
@@ -83,12 +86,14 @@ void menu(int *play)
     // Draw
     while (!cliqueStart() && !cliqueSair() && !WindowShouldClose())
     {
+        UpdateMusicStream(music);
+
         BeginDrawing();
 
-        DrawStaticBackground(background);
-        DrawLogo(logo);
-        DrawStart(start);
-        DrawExit(sair);
+            DrawStaticBackground(background);
+            DrawLogo(logo);
+            DrawStart(start);
+            DrawExit(sair);
 
         EndDrawing();
     }
@@ -98,22 +103,29 @@ void menu(int *play)
         *play = 1;
 
         // Fade-out
+        float volume = 1.0;
         int transparency = 0;
 
         while (transparency <= 255 && *play)
         {
+            SetMusicVolume(music, volume);
+            UpdateMusicStream(music);
+
             BeginDrawing();
 
                 DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
                 
             EndDrawing();
-
+            
             transparency += 2;
+            volume -= 1.0 / 255;
             if (WindowShouldClose()) *play = 0;
         }
     }
 
     // Unload
+    UnloadMusicStream(music);
+
     UnloadTexture(logo);
     UnloadTexture(background);
 

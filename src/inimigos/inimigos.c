@@ -31,7 +31,7 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 
     *inimigos = aux;
 
-    // Dar load nas texturas dos inimigos
+    // Dar load nas texturas e nos sons dos inimigos
     Image img = LoadImage("../res/inimigos/inimigo.png");
     Image up = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
     Image down = ImageFromImage(img, (Rectangle) {0, 8, 8, 8});
@@ -40,6 +40,8 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     {
         ((*inimigos)[i]).spritesheet[0] = LoadTextureFromImage(up);
         ((*inimigos)[i]).spritesheet[1] = LoadTextureFromImage(down);
+        ((*inimigos)[i]).disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
+        ((*inimigos)[i]).morte = LoadSound("../res/sounds/morte_inimigo.ogg");
     }
 
     // Escolher aleatóriamente o padrão de ataque dos inimigos que serão incialiazados
@@ -182,13 +184,15 @@ void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave 
 
 void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, ProjetilInimigo **projetil, int *numProjetil, int frames)
 {
-    // Disparar a cada 5 segundos
-    if (frames % (5 * FPS) == 0)
+    // Disparar a cada 3 segundos
+    if (frames != 0 && frames % (3 * FPS) == 0)
     {
         for (int i = 0; i < numInimigos; i++)
         {
             if (GetRandomValue(0, 1))
             {
+                if (frames != 0) PlaySound(inimigos[i].disparo);
+                
                 ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
 
                 if (aux == NULL)

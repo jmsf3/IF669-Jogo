@@ -3,6 +3,7 @@
 #include "fases.h"
 #include "../nave/nave.h"
 #include "../inimigos/inimigos.h"
+#include "../colisoes/colisoes.h"
 #include "../backgrounds/backgrounds.h"
 #include "../../dep/include/raylib.h"
 #define FPS 60
@@ -14,7 +15,7 @@
 #define LARG_YW 43 * ESCALA2
 #define ALT_GO 28 * ESCALA2
 #define LARG_GO 44 * ESCALA2
-#define TEMPO_FASE 10 // segundos
+#define TEMPO_FASE 20 // segundos
 
 void youWon()
 {
@@ -48,9 +49,36 @@ void gameOver()
     UnloadTexture(over);
 }
 
+void faseCompleta(int *play)
+{
+    char *text[3] = {"FASE COMPLETA", "PRESSIONE ENTER PARA CONTINUAR"};
+    Font font = LoadFont("../res/fonts/alpha_beta.png");
+    Vector2 position[2];
+
+    for (int i = 0; i < 2; i++)
+    {
+        position[i].x = LARG_JANELA / 2 - MeasureTextEx(font, text[i], font.baseSize * 2, 4).x / 2;
+        position[i].y = ALT_JANELA / 2 - font.baseSize + 45 * i;
+    }
+
+    while (!IsKeyPressed(KEY_ENTER) && !WindowShouldClose())
+    {
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+            for (int i = 0; i < 2; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
+
+        EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
+    }
+    
+    UnloadFont(font);
+}
+
 void terceiraFase()
 {
-    
+
 }
 
 void segundaFase()
@@ -59,6 +87,9 @@ void segundaFase()
     int frames = 0;
     int divisao = 0;
     Texture2D background = LoadTexture("../res/backgrounds/background_espaco.png");
+
+    Music music = LoadMusicStream("../res/sounds/musica_fase.ogg");
+    PlayMusicStream(music);
 
     Nave nave;
     inicializarNave(&nave);
@@ -71,29 +102,45 @@ void segundaFase()
 
     // Fade-in
     int play = 1;
+    float volume = 0.0;
     int transparency = 255;
 
     while (transparency >= 0 && play)
     {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
+        atualizarPropulsor(&nave, frames, 'm');
+
+        // Draw
         BeginDrawing();
 
             DrawStaticBackground(background);
-            DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA1, WHITE);
+            DrawShip(nave);
             DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
 
         EndDrawing();
 
+        frames++;
         transparency -= 2;
+        volume += 1.0 / 255;
         if (WindowShouldClose()) play = 0;
     }
 
+    frames = 0;
+
+    // Iniciar fase
     while (nave.hp > 0 && frames < TEMPO_FASE * FPS && play)
     {
         // Atualização
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+
+        // Colisões
+        checarColisoes(&nave, &inimigo, &projetilInimigo, &numInimigos, &numProjetilInimigo);
             
         // Draw
         BeginDrawing();
@@ -117,9 +164,13 @@ void segundaFase()
 
     while (transparency <= 255 && play)
     {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
 
+        // Draw
         BeginDrawing();
 
             DrawScrollingBackground(background, divisao); 
@@ -131,12 +182,16 @@ void segundaFase()
 
         frames++;
         transparency += 2;
+        volume -= 1.0 / 255;
         if (WindowShouldClose()) play = 0;
     }
 
     // Unload
     UnloadTexture(background);
+    UnloadMusicStream(music);
 
+    UnloadSound(nave.hit);
+    UnloadSound(nave.disparo);
     UnloadTexture(nave.sprite);
     for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
 
@@ -150,6 +205,8 @@ void segundaFase()
     for (int i = 0; i < numInimigos; i++)
     {
         UnloadTexture(inimigo[i].sprite);
+        UnloadSound(inimigo[i].disparo);
+        UnloadSound(inimigo[i].morte);
 
         for (int j = 0; j < 2; j++) UnloadTexture(inimigo[i].spritesheet[j]);
     }
@@ -161,15 +218,16 @@ void segundaFase()
     free(inimigo);
     free(projetilInimigo);
 
-    if (nave.hp <= 0)
+    if (nave.hp == 0 && play)
     {
         // GAME OVER
         gameOver();
     }
-    else if (frames >= TEMPO_FASE * FPS)
+    else if (frames >= TEMPO_FASE * FPS && play)
     {
-        // Continuar para segunda fase
-        // terceiraFase();
+        // Continuar para terceira fase
+        faseCompleta(&play);
+        if (play) terceiraFase();
     }
 }
 
@@ -178,6 +236,9 @@ void primeiraFase()
     // Inicialização
     int frames = 0;
     Texture2D background = LoadTexture("../res/backgrounds/background_espaco.png");
+
+    Music music = LoadMusicStream("../res/sounds/musica_fase.ogg");
+    PlayMusicStream(music);
 
     Nave nave;
     inicializarNave(&nave);
@@ -190,10 +251,16 @@ void primeiraFase()
 
     // Fade-in
     int play = 1;
+    float volume = 0.0;
     int transparency = 255;
 
     while (transparency >= 0 && play)
     {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
+        
+        // Draw
         BeginDrawing();
 
             DrawStaticBackground(background);
@@ -203,6 +270,7 @@ void primeiraFase()
         EndDrawing();
 
         transparency -= 2;
+        volume += 1.0 / 255;
         if (WindowShouldClose()) play = 0;
     }
 
@@ -220,6 +288,7 @@ void primeiraFase()
     while (!IsKeyPressed(KEY_ENTER) && play)
     {
         // Atualização
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
 
         // Draw
@@ -236,15 +305,21 @@ void primeiraFase()
         if (WindowShouldClose()) play = 0;
     }
 
+    // Dar reset nos frames
     frames = 0;
     UnloadFont(font);
 
+    // Iniciar fase
     while (nave.hp > 0 && frames < TEMPO_FASE * FPS && play)
     {
         // Atualização
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+
+        // Colisões
+        checarColisoes(&nave, &inimigo, &projetilInimigo, &numInimigos, &numProjetilInimigo);
             
         // Draw
         BeginDrawing();
@@ -268,8 +343,12 @@ void primeiraFase()
 
     while (transparency <= 255 && play)
     {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
 
+        // Draw
         BeginDrawing();
 
             DrawStaticBackground(background);
@@ -281,12 +360,16 @@ void primeiraFase()
 
         frames++;
         transparency += 2;
+        volume -= 1.0 / 255;
         if (WindowShouldClose()) play = 0;
     }
 
     // Unload
     UnloadTexture(background);
-
+    UnloadMusicStream(music);
+    
+    UnloadSound(nave.hit);
+    UnloadSound(nave.disparo);
     UnloadTexture(nave.sprite);
     for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
 
@@ -300,6 +383,8 @@ void primeiraFase()
     for (int i = 0; i < numInimigos; i++)
     {
         UnloadTexture(inimigo[i].sprite);
+        UnloadSound(inimigo[i].disparo);
+        UnloadSound(inimigo[i].morte);
 
         for (int j = 0; j < 2; j++) UnloadTexture(inimigo[i].spritesheet[j]);
     }
@@ -311,15 +396,16 @@ void primeiraFase()
     free(inimigo);
     free(projetilInimigo);
 
-    if (nave.hp <= 0)
+    if (nave.hp == 0 && play)
     {
         // GAME OVER
         gameOver();
     }
-    else if (frames >= TEMPO_FASE * FPS)
+    else if (frames >= TEMPO_FASE * FPS && play)
     {
         // Continuar para segunda fase
-        segundaFase();
+        faseCompleta(&play);
+        if (play) segundaFase();
     }
 }
 

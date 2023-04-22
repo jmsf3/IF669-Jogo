@@ -13,6 +13,7 @@ int main()
 {
     // Inicialização
     InitWindow(LARG_JANELA, ALT_JANELA, "ACM vs. C-GPT669");
+    InitAudioDevice();
     SetTargetFPS(FPS);
     int play = 0;
 
