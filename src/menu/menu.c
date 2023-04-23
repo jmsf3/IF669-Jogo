@@ -83,11 +83,12 @@ void menu(int *play)
                          LoadTextureFromImage(ImageFromImage(imgSair, (Rectangle) {39, 0, 39, 18})),
                          LoadTextureFromImage(ImageFromImage(imgSair, (Rectangle) {78, 0, 39, 18}))}; 
 
-    // Draw
     while (!cliqueStart() && !cliqueSair() && !WindowShouldClose())
     {
+        // Atualização
         UpdateMusicStream(music);
 
+        // Draw
         BeginDrawing();
 
             DrawStaticBackground(background);
@@ -108,9 +109,11 @@ void menu(int *play)
 
         while (transparency <= 255 && *play)
         {
+            // Atualização
             SetMusicVolume(music, volume);
             UpdateMusicStream(music);
 
+            // Draw
             BeginDrawing();
 
                 DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});

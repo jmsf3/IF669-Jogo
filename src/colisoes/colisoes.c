@@ -15,15 +15,15 @@
 void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, int *numInimigos, int *numProjetil)
 {
     // Colisão Nave-Projétil
+    int colisao = 0;
     if (GetTime() > nave->tInvencivel)
     {
         Rectangle hitboxNave = {nave->posicao.x, nave->posicao.y, LARG_INIMIGO, ALT_INIMIGO};
-        int colisao = 0;
         
         for (int i = 0; i < *numProjetil && !colisao; i++)
         {
             Rectangle hitboxProjetil= {(*projetil)[i].posicao.x, (*projetil)[i].posicao.y, LARG_PROJETIL_INMG, ALT_PROJETIL_INMG};
-            colisao= CheckCollisionRecs(hitboxNave, hitboxProjetil);
+            colisao = CheckCollisionRecs(hitboxNave, hitboxProjetil);
 
             if (colisao)
             {
@@ -67,13 +67,17 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
     }
 
     // Colisão Inimigo-Projétil
-    for (int i = 0; i < *numInimigos; i++)
+    colisao = 0;
+    for (int i = 0; i < *numInimigos && !colisao; i++)
     {
-        for (int j = 0; j < nave->numProjetil; j++)
+        for (int j = 0; j < nave->numProjetil && !colisao; j++)
         {
+            printf("lul2\n");
             Rectangle hitboxInimigo = {(*inimigo)[i].posicao.x, (*inimigo)[i].posicao.y, LARG_INIMIGO, ALT_INIMIGO};
+            printf("lul3\n");
             Rectangle hitboxProjetil= {nave->projetil[j].posicao.x, nave->projetil[j].posicao.y, LARG_PROJETIL_NV, ALT_PROJETIL_NV};
-            int colisao = CheckCollisionRecs(hitboxInimigo, hitboxProjetil);
+            colisao = CheckCollisionRecs(hitboxInimigo, hitboxProjetil);
+            printf("lul4\n");
 
             if (colisao)
             {
@@ -116,10 +120,13 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
                     nave->projetil[k] = nave->projetil[k + 1];
                 }
 
+                printf("opa\n"); 
+
                 if (nave->numProjetil > 1)
                 {
+                    printf("epa1\n");
                     ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil - 1) * sizeof(ProjetilNave));
-
+                    printf("epa2\n");
                     if (aux == NULL)
                     {
                         printf("Erro ao alocar a memória.\n");
@@ -140,15 +147,15 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
     }
 
     // Colisão Nave-Inimigo
+    colisao = 0;
     if (GetTime() > nave->tInvencivel)
     {
         Rectangle hitboxNave = {nave->posicao.x, nave->posicao.y, LARG_INIMIGO, ALT_INIMIGO};
-        int colisao = 0;
 
         for (int i = 0; i < *numInimigos && !colisao; i++)
         {
             Rectangle hitboxInimigo = {(*inimigo)[i].posicao.x, (*inimigo)[i].posicao.y, LARG_INIMIGO, ALT_INIMIGO};
-            int colisao = CheckCollisionRecs(hitboxNave, hitboxInimigo);
+            colisao = CheckCollisionRecs(hitboxNave, hitboxInimigo);
 
             if (colisao)
             {

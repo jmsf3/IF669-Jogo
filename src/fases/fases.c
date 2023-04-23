@@ -15,7 +15,7 @@
 #define LARG_YW 43 * ESCALA2
 #define ALT_GO 28 * ESCALA2
 #define LARG_GO 44 * ESCALA2
-#define TEMPO_FASE 20 // segundos
+#define TEMPO_FASE 60 // segundos
 
 void youWon()
 {
@@ -51,7 +51,7 @@ void gameOver()
 
 void faseCompleta(int *play)
 {
-    char *text[3] = {"FASE COMPLETA", "PRESSIONE ENTER PARA CONTINUAR"};
+    char *text[3] = {"FASE COMPLETA!", "PRESSIONE ENTER PARA CONTINUAR"};
     Font font = LoadFont("../res/fonts/alpha_beta.png");
     Vector2 position[2];
 
@@ -61,7 +61,7 @@ void faseCompleta(int *play)
         position[i].y = ALT_JANELA / 2 - font.baseSize + 45 * i;
     }
 
-    while (!IsKeyPressed(KEY_ENTER) && !WindowShouldClose())
+    while (!IsKeyPressed(KEY_ENTER) && *play)
     {
         BeginDrawing();
 
@@ -317,7 +317,7 @@ void primeiraFase()
         atualizarNave(&nave, frames);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
-
+ 
         // Colisões
         checarColisoes(&nave, &inimigo, &projetilInimigo, &numInimigos, &numProjetilInimigo);
             

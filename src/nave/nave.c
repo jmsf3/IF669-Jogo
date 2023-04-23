@@ -51,19 +51,19 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
     // Posição
     if (sprite == 'l')
     {
-        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * 5;
-        nave->propulsor[1].posicao.x = nave->posicao.x + 4 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * ESCALA;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 4 * ESCALA;
        
     }
     else if (sprite == 'r')
     {
-        nave->propulsor[0].posicao.x = nave->posicao.x + 3 * 5;
-        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 3 * ESCALA;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * ESCALA;
     }
     else
     {
-        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * 5;
-        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * 5;
+        nave->propulsor[0].posicao.x = nave->posicao.x + 2 * ESCALA;
+        nave->propulsor[1].posicao.x = nave->posicao.x + 5 * ESCALA;
     }
 
     nave->propulsor[0].posicao.y = nave->propulsor[1].posicao.y = nave->posicao.y + ALT_NAVE;
@@ -73,11 +73,11 @@ void inicializarProjetilNave(Nave *nave)
 {
     nave->projetil[nave->numProjetil].tDisparo = GetTime();
     nave->projetil[nave->numProjetil].sprite = LoadTexture("../res/nave/projetil_nave.png");
-    nave->projetil[nave->numProjetil].posicao = (Vector2) {nave->posicao.x, nave->posicao.y - 2 * 5};
+    nave->projetil[nave->numProjetil].posicao = (Vector2) {nave->posicao.x, nave->posicao.y - 2 * ESCALA};
 
     nave->projetil[nave->numProjetil + 1].tDisparo = GetTime();
     nave->projetil[nave->numProjetil + 1].sprite = LoadTexture("../res/nave/projetil_nave.png");
-    nave->projetil[nave->numProjetil + 1].posicao = (Vector2) {nave->posicao.x + 5 * 5, nave->posicao.y - 2 * 5};
+    nave->projetil[nave->numProjetil + 1].posicao = (Vector2) {nave->posicao.x + 5 * 5, nave->posicao.y - 2 * ESCALA};
 }
 
 void atualizarProjetilNave(Nave *nave)
@@ -179,10 +179,11 @@ void inicializarNave(Nave *nave)
 
     nave->numProjetil = 0;
     nave->projetil = NULL;
-
+    
     nave->disparo = LoadSound("../res/sounds/disparo_nave.ogg");
     nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
     
+    nave->tInvencivel = GetTime();
     nave->hp = 3;
 
     UnloadImage(img);
