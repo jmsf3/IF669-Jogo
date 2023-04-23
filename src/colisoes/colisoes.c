@@ -15,10 +15,10 @@
 void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, int *numInimigos, int *numProjetil)
 {
     // Colisão Nave-Projétil
-    int colisao = 0;
     if (GetTime() > nave->tInvencivel)
     {
         Rectangle hitboxNave = {nave->posicao.x, nave->posicao.y, LARG_INIMIGO, ALT_INIMIGO};
+        int colisao = 0;
         
         for (int i = 0; i < *numProjetil && !colisao; i++)
         {
@@ -67,17 +67,15 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
     }
 
     // Colisão Inimigo-Projétil
-    colisao = 0;
-    for (int i = 0; i < *numInimigos && !colisao; i++)
+    for (int i = 0; i < *numInimigos; i++)
     {
+        Rectangle hitboxInimigo = {(*inimigo)[i].posicao.x, (*inimigo)[i].posicao.y, LARG_INIMIGO, ALT_INIMIGO};
+        int colisao = 0;
+
         for (int j = 0; j < nave->numProjetil && !colisao; j++)
         {
-            printf("lul2\n");
-            Rectangle hitboxInimigo = {(*inimigo)[i].posicao.x, (*inimigo)[i].posicao.y, LARG_INIMIGO, ALT_INIMIGO};
-            printf("lul3\n");
             Rectangle hitboxProjetil= {nave->projetil[j].posicao.x, nave->projetil[j].posicao.y, LARG_PROJETIL_NV, ALT_PROJETIL_NV};
             colisao = CheckCollisionRecs(hitboxInimigo, hitboxProjetil);
-            printf("lul4\n");
 
             if (colisao)
             {
@@ -147,10 +145,10 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
     }
 
     // Colisão Nave-Inimigo
-    colisao = 0;
     if (GetTime() > nave->tInvencivel)
     {
         Rectangle hitboxNave = {nave->posicao.x, nave->posicao.y, LARG_INIMIGO, ALT_INIMIGO};
+        int colisao = 0;
 
         for (int i = 0; i < *numInimigos && !colisao; i++)
         {
