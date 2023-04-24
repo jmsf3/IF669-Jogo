@@ -7,12 +7,16 @@
 #include "../../dep/include/raymath.h"
 #define FPS 60
 #define ESCALA 5
+#define ESCALA_B 10
+#define ALT_BOSS 16 * ESCALA_B 
+#define LARG_BOSS 16 * ESCALA_B
 #define ALT_INIMIGO 8 * ESCALA
 #define LARG_INIMIGO 8 * ESCALA
 #define ALT_PROJETIL 2 * ESCALA 
 #define LARG_PROJETIL 2 * ESCALA
 #define ALT_JANELA 600
-#define LARG_JANELA 1000 
+#define LARG_JANELA 1000
+#define VEL_BOSS 3 
 #define VEL_INIMIGO 3 
 #define VEL_PROJETIL 4
 #define ESPACO 3 * LARG_INIMIGO
@@ -257,12 +261,31 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
 
 void inicializarBoss(Boss *boss)
 {
+    boss->hp = 300;
+    boss->velocidade = VEL_BOSS;
+    boss->sprite = LoadTexture("../res/inimigos/boss.png");
+    boss->disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
+    boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
+}
+
+void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int frames)
+{
 
 }
 
-void atualizarBoss(Boss *boss)
+void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, int dir, char side)
 {
 
+}
+
+void atualizarProjetilBoss(ProjetilInimigo **projetil, int *numProjetil)
+{
+   
+}
+
+void DrawBoss(Boss boss)
+{
+    DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
 }
 
 void DrawEnemy(Inimigo *inimigos, int numInimigos)

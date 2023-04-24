@@ -9,6 +9,9 @@
 #define FPS 60
 #define ESCALA1 5
 #define ESCALA2 6
+#define ALT_NAVE 8 * ESCALA1
+#define LARG_NAVE 8 * ESCALA1
+#define VEL_NAVE 1
 #define ALT_JANELA 600
 #define LARG_JANELA 1000
 #define ALT_YW 27 * ESCALA2
@@ -78,7 +81,105 @@ void faseCompleta(int *play)
 
 void terceiraFase()
 {
+    // Inicialização
+    int frames = 0;
+    Texture2D background = LoadTexture("../res/backgrounds/background_terra.png");
 
+    Music music = LoadMusicStream("../res/sounds/musica_fase.ogg");
+    PlayMusicStream(music);
+
+    Nave nave;
+    inicializarNave(&nave);
+    nave.posicao.y = ALT_JANELA;
+
+    Boss boss;
+    inicializarBoss(&boss);
+
+    int numProjetilBoss = 0;
+    ProjetilInimigo *projetilBoss = NULL;
+
+    // Fade-in / Cutscene
+    int play = 1;
+    float volume = 0.0;
+    int transparency = 255;
+
+    while (transparency >= 0 && play)
+    {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
+
+        atualizarPropulsor(&nave, frames, 'm');
+        
+        // Draw
+        BeginDrawing();
+
+            DrawStaticBackground(background);
+            DrawShip(nave);
+            DrawBoss(boss);
+            DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
+
+        EndDrawing();
+
+        frames++;
+        transparency -= 2;
+        volume += 1.0 / 255;
+        if (nave.posicao.y > ALT_JANELA - 2 * ALT_NAVE) nave.posicao.y -= VEL_NAVE;
+        if (WindowShouldClose()) play = 0;
+    }
+
+    // Reset nos frames
+    frames = 0;
+
+    // Iniciar fase
+    while (nave.hp > 0 && boss.hp > 0 && play)
+    {
+        // Atualização
+        UpdateMusicStream(music);
+        atualizarNave(&nave, frames);
+        atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
+        atualizarProjetilBoss(&projetilBoss, &numProjetilBoss);
+
+        // Colisões
+             
+        // Draw
+        BeginDrawing();
+                
+            DrawStaticBackground(background); 
+                
+            DrawShip(nave);
+            DrawShipProjectile(nave);
+
+            DrawBoss(boss);
+            DrawEnemyProjectile(projetilBoss, numProjetilBoss);
+            
+        EndDrawing();
+
+        frames++;
+        if (WindowShouldClose()) play = 0;
+    }
+
+    // Unload
+    UnloadTexture(background);
+    UnloadMusicStream(music);
+
+    UnloadSound(nave.hit);
+    UnloadSound(nave.disparo);
+    UnloadTexture(nave.sprite);
+    for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
+
+    for (int i = 0; i < 2; i++)
+    {
+        UnloadTexture(nave.propulsor[i].sprite);
+
+        for (int j = 0; j < 4; j++) UnloadTexture(nave.propulsor[i].spritesheet[j]);
+    }
+    
+    for (int i = 0; i < numProjetilBoss; i++) UnloadTexture(projetilBoss[i].sprite);
+
+    // Free
+    free(projetilBoss);
+    free(nave.projetil);
 }
 
 void segundaFase()
@@ -127,6 +228,7 @@ void segundaFase()
         if (WindowShouldClose()) play = 0;
     }
 
+    // Reset dos frames
     frames = 0;
 
     // Iniciar fase

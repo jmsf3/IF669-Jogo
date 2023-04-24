@@ -24,7 +24,8 @@ typedef struct
 typedef struct 
 {
     int hp; // HP
-    int pdrAtq; // Padrão de ataque
+    int velocidade; // Velocidade
+    Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
 } Boss;
@@ -36,8 +37,12 @@ void inicializarInimigos(Inimigo **inimigo, int *numInimigos);
 void atualizarInimigos(Inimigo **inimigo, int *numInimigos, int frames);
 
 void inicializarBoss(Boss *boss);
-void atualizarBoss(Boss *boss);
+void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int frames);
 
+void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, int dir, char side);
+void atualizarProjetilBoss(ProjetilInimigo **projetil, int *numProjetil);
+
+void DrawBoss(Boss boss);
 void DrawEnemy(Inimigo *inimigo, int numInimigos);
 void DrawEnemyProjectile(ProjetilInimigo *projetil, int numProjetil);
 
