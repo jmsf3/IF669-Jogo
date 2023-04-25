@@ -329,6 +329,7 @@ void terceiraFase()
         // Atualização
         atualizarNave(&nave, frames);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
+        atualizarPiloto(&nave, frames);
         atualizarProjetilBoss(boss, &projetilBoss, &numProjetilBoss, nave, frames);
 
         // Colisões
@@ -796,6 +797,5 @@ void primeiraFase()
 
 void start()
 {
-    terceiraFase();
     primeiraFase();
 }

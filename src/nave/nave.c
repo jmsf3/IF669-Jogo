@@ -161,9 +161,26 @@ void atualizarProjetilNave(Nave *nave)
     }
 }
 
+void inicializarPiloto(Nave *nave)
+{
+    Image img = LoadImage("../res/nave/piloto.png");
+    int larguraImagem = 8;
+    int alturaImagem = 9;
+
+    for (int i = 0; i < 5; i++) {
+        Rectangle retangulo = { i * larguraImagem, 0, larguraImagem, alturaImagem };
+        Image sprite = ImageFromImage(img, retangulo);
+        nave->piloto[i] = LoadTextureFromImage(sprite);
+        UnloadImage(sprite);
+    }
+
+    UnloadImage(img);
+}
+
 void inicializarNave(Nave *nave, int score)
 {
     inicializarPropulsor(nave->propulsor);
+    inicializarPiloto(nave);
 
     nave->posicao = (Vector2) {(LARG_JANELA - LARG_NAVE) / 2, ALT_JANELA - 2 * ALT_NAVE};
 
@@ -195,10 +212,36 @@ void inicializarNave(Nave *nave, int score)
     UnloadImage(right);
 }
 
+
+
+void atualizarPiloto(Nave *nave, int frames){
+    // Animação
+
+    for (int i = 0; i < 5; i ++)
+    {        
+        if (frames % (5 * (FPS / 5)) == i * (FPS / 5))
+        {
+            nave->piloto[0] = nave->piloto[i];
+        }
+    }
+}
+
+
 void atualizarNave(Nave *nave, int frames)
 {
     char sprite;
-    
+        {
+        nave->sprite = nave->spritesheet[1];
+        sprite = 'm';
+    }
+
+    // Movimentação
+    if (IsKeyDown(KEY_LEFT) && nave->posicao.x > 0) 
+        nave->posicao.x -= VEL_NAVE;
+    if (IsKeyDown(KEY_RIGHT) && nave->posicao.x < LARG_JANELA - LARG_NAVE)
+        nave->posicao.x += VEL_NAVE;
+    if (IsKeyDown(KEY_UP) && nave->posicao.y > 0)
+
     // Animação da nave
     if (IsKeyDown(KEY_LEFT))
     {
@@ -228,6 +271,7 @@ void atualizarNave(Nave *nave, int frames)
     
      // Animação dos propulsores 
     atualizarPropulsor(nave, frames, sprite);
+    atualizarPiloto(nave, frames);
 
     // Projéteis
     atualizarProjetilNave(nave);
@@ -251,7 +295,11 @@ void DrawShip(Nave nave)
         {
             DrawTextureEx(nave.spriteCoracao, (Vector2) {10 + 8 * ESCALA * i, ALT_JANELA - 8 * ESCALA}, 0, ESCALA, WHITE);
         }
-    }
+
+        // Piloto
+        DrawTextureEx(nave.piloto[0], (Vector2) {LARG_JANELA - 10 * ESCALA , ALT_JANELA - 11 * ESCALA}, 0, ESCALA, WHITE);
+
+}
     
     // Score
     DrawTextEx(nave.font, TextFormat("SCORE: %05d", nave.score), (Vector2) {10, 10}, nave.font.baseSize * 2, 4, WHITE);
