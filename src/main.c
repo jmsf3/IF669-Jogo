@@ -23,8 +23,7 @@ int main()
     // Jogo
     if (play)
     {
-        // start();
-        terceiraFase();
+        start();
     }
 
     CloseWindow();

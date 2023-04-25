@@ -184,7 +184,40 @@ void inicializarNave(Nave *nave)
     nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
     
     nave->tInvencivel = GetTime();
+    nave->hp = 1;
+    nave->pontos = 0;
+
+    UnloadImage(img);
+    UnloadImage(left);
+    UnloadImage(middle);
+    UnloadImage(right);
+}
+
+void inicializarNave2(Nave *nave, int pontos)
+{
+    inicializarPropulsor(nave->propulsor);
+
+    nave->posicao = (Vector2) {(LARG_JANELA - LARG_NAVE) / 2, ALT_JANELA - 2 * ALT_NAVE};
+
+    Image img = LoadImage("../res/nave/nave.png");
+    Image left = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
+    Image middle = ImageFromImage(img, (Rectangle) {8, 0, 8, 8});
+    Image right = ImageFromImage(img, (Rectangle) {16, 0, 8, 8});
+
+    nave->spritesheet[0] = LoadTextureFromImage(left);
+    nave->spritesheet[1] = LoadTextureFromImage(middle);
+    nave->spritesheet[2] = LoadTextureFromImage(right);
+    nave->sprite = nave->spritesheet[1];
+
+    nave->numProjetil = 0;
+    nave->projetil = NULL;
+    
+    nave->disparo = LoadSound("../res/sounds/disparo_nave.ogg");
+    nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
+    
+    nave->tInvencivel = GetTime();
     nave->hp = 3;
+    nave->pontos = pontos;
 
     UnloadImage(img);
     UnloadImage(left);
@@ -234,6 +267,7 @@ void DrawShip(Nave nave)
 {
     // Nave
     DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA, WHITE);
+    DrawText(TextFormat("Score: %04i", nave.pontos), 10, 10, 20, WHITE);
 
     // Propulsores da nave
     for (int i = 0; i < 2; i++)
