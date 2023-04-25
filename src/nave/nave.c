@@ -83,7 +83,7 @@ void inicializarProjetilNave(Nave *nave)
 void atualizarProjetilNave(Nave *nave)
 {
     // Disparar
-    if (IsKeyPressed(KEY_SPACE))
+    if (nave->hp > 0 && IsKeyPressed(KEY_SPACE))
     {
         // Calcular o intervalo de tempo percorrido desde o último disparo
         double dt;
@@ -161,7 +161,7 @@ void atualizarProjetilNave(Nave *nave)
     }
 }
 
-void inicializarNave(Nave *nave)
+void inicializarNave(Nave *nave, int score)
 {
     inicializarPropulsor(nave->propulsor);
 
@@ -179,11 +179,14 @@ void inicializarNave(Nave *nave)
 
     nave->numProjetil = 0;
     nave->projetil = NULL;
-    
+
+    nave->spriteCoracao = LoadTexture("../res/interface/coracao.png");
+    nave->font = LoadFont("../res/fonts/alpha_beta.png");
     nave->disparo = LoadSound("../res/sounds/disparo_nave.ogg");
     nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
     
     nave->tInvencivel = GetTime();
+    nave->score = score;
     nave->hp = 3;
 
     UnloadImage(img);
@@ -232,14 +235,26 @@ void atualizarNave(Nave *nave, int frames)
 
 void DrawShip(Nave nave)
 {
-    // Nave
-    DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA, WHITE);
-
-    // Propulsores da nave
-    for (int i = 0; i < 2; i++)
+    if (nave.hp > 0)
     {
-        DrawTextureEx(nave.propulsor[i].sprite, nave.propulsor[i].posicao, 0, ESCALA, WHITE);
+        // Nave
+        DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA, WHITE);
+
+        // Propulsores da nave
+        for (int i = 0; i < 2; i++)
+        {
+            DrawTextureEx(nave.propulsor[i].sprite, nave.propulsor[i].posicao, 0, ESCALA, WHITE);
+        }
+
+        // Vidas
+        for (int i = 0; i < nave.hp; i++)
+        {
+            DrawTextureEx(nave.spriteCoracao, (Vector2) {10 + 8 * ESCALA * i, ALT_JANELA - 8 * ESCALA}, 0, ESCALA, WHITE);
+        }
     }
+    
+    // Score
+    DrawTextEx(nave.font, TextFormat("SCORE: %05d", nave.score), (Vector2) {10, 10}, nave.font.baseSize * 2, 4, WHITE);
 }
 
 void DrawShipProjectile(Nave nave)

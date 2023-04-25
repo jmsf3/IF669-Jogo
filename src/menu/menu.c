@@ -120,7 +120,7 @@ void menu(int *play)
                 
             EndDrawing();
             
-            transparency += 2;
+            transparency += 3;
             volume -= 1.0 / 255;
             if (WindowShouldClose()) *play = 0;
         }

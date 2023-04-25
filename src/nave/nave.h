@@ -19,12 +19,15 @@ typedef struct
 typedef struct
 {
     int hp; // HP
+    int score; // Score
     int numProjetil; // Número de projéteis
     double tInvencivel; // Tempo de invencibilidade
+    Font font; // Fonte
     Sound hit; // Som de hit
     Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
+    Texture2D spriteCoracao; // Sprite do coração
     Texture2D spritesheet[3]; // Spritesheet
     Propulsor propulsor[2]; // Propulsores
     ProjetilNave *projetil; // Projéteis
@@ -36,7 +39,7 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite);
 void inicializarProjetilNave(Nave *nave);
 void atualizarProjetilNave(Nave *nave);
 
-void inicializarNave(Nave *nave);
+void inicializarNave(Nave *nave, int score);
 void atualizarNave(Nave *nave, int frames);
 
 void DrawShip(Nave nave);

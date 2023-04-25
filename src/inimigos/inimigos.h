@@ -25,9 +25,12 @@ typedef struct
 {
     int hp; // HP
     int velocidade; // Velocidade
+    Font font; // Fonte
     Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
+    Vector2 direcao; // Direção do boss
+
 } Boss;
 
 void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave nave);
@@ -39,8 +42,8 @@ void atualizarInimigos(Inimigo **inimigo, int *numInimigos, int frames);
 void inicializarBoss(Boss *boss);
 void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int frames);
 
-void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, int dir, char side);
-void atualizarProjetilBoss(ProjetilInimigo **projetil, int *numProjetil);
+void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, Nave nave);
+void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjetil, Nave nave, int frames);
 
 void DrawBoss(Boss boss);
 void DrawEnemy(Inimigo *inimigo, int numInimigos);

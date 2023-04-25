@@ -266,26 +266,111 @@ void inicializarBoss(Boss *boss)
     boss->sprite = LoadTexture("../res/inimigos/boss.png");
     boss->disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
     boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
+    boss->direcao = (Vector2) {1,1};
+    boss->font = LoadFont("../res/fonts/alpha_beta.png");
 }
 
 void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int frames)
 {
+    boss->posicao.x += boss->velocidade * boss->direcao.x;
+    boss->posicao.y += boss->velocidade * boss->direcao.y;
 
+    // Inverter direção do movimento do chefão se ele atingir a borda da tela
+    if (boss->posicao.x >= LARG_JANELA - 200 || boss->posicao.x <= 100)
+        boss->direcao.x *= -1;
+    if (boss->posicao.y <= 0 || boss->posicao.y >= ALT_JANELA*2/3 - 100)
+        boss->direcao.y *= -1;
 }
 
-void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, int dir, char side)
+void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, Nave nave)
 {
-
+    projetil->sprite = LoadTexture("../res/inimigos/projetil_inimigo.png");
+    projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, boss.posicao));
+    projetil->posicao = Vector2Add(boss.posicao, Vector2Scale(projetil->direcao, VEL_PROJETIL));
 }
 
-void atualizarProjetilBoss(ProjetilInimigo **projetil, int *numProjetil)
+void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjetil, Nave nave, int frames)
 {
-   
+    // Disparar a cada 0.5 segundos
+    if (frames != 0 && frames % 30 == 0)
+    {
+        if (frames != 0) PlaySound(boss.disparo);
+        
+        ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
+
+        if (aux == NULL)
+        {
+            free(*projetil);
+            exit(1);
+        }
+
+        *projetil = aux;
+        incializarProjetilBoss(&((*projetil)[*numProjetil]), boss, nave);
+        (*numProjetil)++;
+    }
+
+    // Movimentação
+    for (int i = 0; i < *numProjetil; i++)
+    {
+        ((*projetil)[i]).posicao = Vector2Add(((*projetil)[i]).posicao, Vector2Scale(((*projetil)[i]).direcao, VEL_PROJETIL));
+    }
+
+    // Remover projéteis que estão fora da tela
+    for (int i = 0; i < *numProjetil; i++)
+    {
+        int c0 = ((*projetil)[i]).posicao.x < -LARG_PROJETIL;
+        int c1 = ((*projetil)[i]).posicao.x > LARG_JANELA;
+        int c2 = ((*projetil)[i]).posicao.y > ALT_JANELA;
+
+        if (c0 || c1 || c2)
+        {
+            UnloadTexture(((*projetil)[i]).sprite);
+
+            for (int j = i; j < *numProjetil - 1; j++)
+            {
+                (*projetil)[j] = (*projetil)[j + 1];
+            }
+
+            if (*numProjetil > 1)
+            {
+                ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil - 1) * sizeof(ProjetilInimigo));
+
+                if (aux == NULL)
+                {
+                    printf("Erro ao alocar a memória.\n");
+                    free(*projetil);
+                    exit(1);
+                }
+                
+                *projetil = aux;
+            }
+            else
+            {
+                *projetil = NULL;
+            }
+
+            (*numProjetil)--;
+        }        
+    }  
 }
 
 void DrawBoss(Boss boss)
 {
+    Rectangle background = {10, 50, 200, 30};
+    Rectangle foreground = {10, 50, (200 * boss.hp) / 300, 30};
+    Color backgroundColor = GRAY;
+    Color foregroundColor = RED;
+
     DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
+
+    // Draw background
+    DrawRectangleRec(background, backgroundColor);
+
+    // Draw foreground
+    DrawRectangleRec(foreground, foregroundColor);
+
+    // Draw text
+    DrawTextEx(boss.font, TextFormat("%d / %d", boss.hp, 300), (Vector2) {foreground.x + foreground.width / 2 - MeasureText(TextFormat("%d / %d", boss.hp, 300), 20) / 2, foreground.y + 7}, boss.font.baseSize * 2, 4, BLACK);
 }
 
 void DrawEnemy(Inimigo *inimigos, int numInimigos)
@@ -305,4 +390,3 @@ void DrawEnemyProjectile(ProjetilInimigo *projetil, int numProjetil)
         DrawTextureEx(projetil[i].sprite, projetil[i].posicao, 0, ESCALA, WHITE); 
     }
 }
-
