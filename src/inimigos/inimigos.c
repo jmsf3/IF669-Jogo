@@ -12,8 +12,8 @@
 #define LARG_BOSS 16 * ESCALA_B
 #define ALT_INIMIGO 8 * ESCALA
 #define LARG_INIMIGO 8 * ESCALA
-#define ALT_PROJETIL 2 * ESCALA 
-#define LARG_PROJETIL 2 * ESCALA
+#define ALT_PROJETIL 4 * ESCALA 
+#define LARG_PROJETIL 4 * ESCALA
 #define ALT_JANELA 600
 #define LARG_JANELA 1000
 #define VEL_BOSS 3 
@@ -356,21 +356,18 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
 
 void DrawBoss(Boss boss)
 {
-    Rectangle background = {10, 50, 200, 30};
-    Rectangle foreground = {10, 50, (200 * boss.hp) / 300, 30};
+    Rectangle background = {LARG_JANELA - 200 - 10, 10, 200, 30};
+    Rectangle foreground = {LARG_JANELA - 200 - 10, 10, 200 * (boss.hp / 300.0), 30};
     Color backgroundColor = GRAY;
     Color foregroundColor = RED;
 
     DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
 
-    // Draw background
+    // Draw Background
     DrawRectangleRec(background, backgroundColor);
 
-    // Draw foreground
+    // Draw Foreground
     DrawRectangleRec(foreground, foregroundColor);
-
-    // Draw text
-    DrawTextEx(boss.font, TextFormat("%d / %d", boss.hp, 300), (Vector2) {foreground.x + foreground.width / 2 - MeasureText(TextFormat("%d / %d", boss.hp, 300), 20) / 2, foreground.y + 7}, boss.font.baseSize * 2, 4, BLACK);
 }
 
 void DrawEnemy(Inimigo *inimigos, int numInimigos)

@@ -31,7 +31,6 @@ typedef struct
     Texture2D spritesheet[3]; // Spritesheet
     Propulsor propulsor[2]; // Propulsores
     ProjetilNave *projetil; // Projéteis
-    Texture2D piloto[5];
 } Nave;
 
 void inicializarPropulsor(Propulsor *propulsor);
@@ -45,8 +44,5 @@ void atualizarNave(Nave *nave, int frames);
 
 void DrawShip(Nave nave);
 void DrawShipProjectile(Nave nave);
-
-void inicializarPiloto(Nave *nave);
-void atualizarPiloto(Nave *nave, int frames);
 
 #endif

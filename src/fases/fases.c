@@ -90,17 +90,18 @@ void bossFight(int* play)
         "*UM SUPER GPT FOI ENVIADO PARA DESTRUIR A TERRA*",
         "PRESSIONE ENTER PARA IMPEDIR Q A TERRA SEJA DESTRUIDA."
     };
+
     Font font = LoadFont("../res/fonts/alpha_beta.png");
     Vector2 position[3];
 
     int totalWidth = 0;
     int centerX = LARG_JANELA / 2;  // Centro da janela
-    int centerY = ALT_JANELA / 2; // centro da janela em relacao ao eixo y
+    int centerY = ALT_JANELA / 2; // Centro da janela em relacao ao eixo y
 
     for (int i = 0; i < 3; i++)
     {
-        totalWidth = MeasureTextEx(font, text[i], font.baseSize * 2, 4).x;
         int textHeight = font.baseSize * 2; 
+        totalWidth = MeasureTextEx(font, text[i], font.baseSize * 2, 4).x;
         position[i].x = centerX - totalWidth / 2;  // Centralizar o texto
         position[i].y = centerY - (textHeight * 1.5) + (i * textHeight);
     }
@@ -284,6 +285,9 @@ void terceiraFase()
     int numProjetilBoss = 0;
     ProjetilInimigo *projetilBoss = NULL;
 
+    int numExplosoes = 0;
+    Explosao *explosoes = NULL;
+
     // Fade-in / Cutscene
     int play = 1;
     float volume = 0.0;
@@ -302,7 +306,7 @@ void terceiraFase()
 
             DrawStaticBackground(background);
             DrawShip(nave);
-            DrawBoss(boss);
+            DrawTextureEx(boss.sprite, boss.posicao, 0, 10, WHITE);
             DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
 
         EndDrawing();
@@ -318,18 +322,11 @@ void terceiraFase()
     frames = 0;
 
     // Iniciar fase
-    int earthMaxLife = 500;
-    int earthLife = 500;
-
-    Color lifeBackgroundColor = GRAY;
-    Color lifeForegroundColor = GREEN;
-    
     while (nave.hp > 0 && boss.hp > 0 && play)
     {
         // Atualização
         atualizarNave(&nave, frames);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
-        atualizarPiloto(&nave, frames);
         atualizarProjetilBoss(boss, &projetilBoss, &numProjetilBoss, nave, frames);
 
         // Colisões
@@ -346,38 +343,52 @@ void terceiraFase()
             DrawShip(nave);
             DrawShipProjectile(nave);
 
-            Rectangle lifeBackground = { 10, ALT_JANELA - 40, 200, 30 };
-            Rectangle lifeForeground = { 10, ALT_JANELA - 40, (200 * earthLife)/500, 30 }; 
-
-            // Draw lifeBackground
-            DrawRectangleRec(lifeBackground, lifeBackgroundColor);
-
-            // Draw lifeForeground
-            DrawRectangleRec(lifeForeground, lifeForegroundColor);
-
-            // Draw text
-            DrawText(TextFormat("%d / %d", earthLife, earthMaxLife), lifeBackground.x + lifeBackground.width / 2 - MeasureText(TextFormat("%d / %d", earthLife, earthMaxLife), 20) / 2, lifeBackground.y + 7, 20, BLACK);    
-
             DrawBoss(boss);
             DrawEnemyProjectile(projetilBoss, numProjetilBoss);
             
         EndDrawing();
 
         frames++;
+        if (WindowShouldClose()) play = 0;
+    }
 
-        if(frames % 300 == 0){
-            earthLife = earthLife - 50;
-            printf("%d", (200 * earthLife)/500);
-        }
+    // Fade-out
+    transparency = 0;
+    if (nave.hp == 0)
+    {
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
+        PlaySound(explosao);
+        inicializarExplosao(nave.posicao, &numExplosoes, &explosoes, 1);
+    }
 
-        if(earthLife <= 0) {
-            gptKilledYou();
-        }
+    while (transparency <= 255 && play)
+    {
+        // Atualização
+        SetMusicVolume(music, volume);
+        UpdateMusicStream(music);
+        atualizarNave(&nave, frames);
+        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
 
-        if(boss.hp == 0){
-            gptIsDead();
-        }
+        // Draw
+        BeginDrawing();
 
+            DrawStaticBackground(background); 
+            
+            DrawBoss(boss);    
+            DrawShip(nave);
+
+            DrawShipProjectile(nave);
+            DrawEnemyProjectile(projetilBoss, numProjetilBoss);
+            
+            DrawExplosoes(explosoes, numExplosoes);
+            DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
+
+        EndDrawing();
+
+        frames++;
+        transparency += 3;
+        volume -= 1.0 / 255;
         if (WindowShouldClose()) play = 0;
     }
 
@@ -410,7 +421,7 @@ void terceiraFase()
     }
     else if (frames >= TEMPO_FASE * FPS && play)
     {
-        gptKilledYou();
+        gptIsDead();
     }
 }
 
@@ -586,7 +597,8 @@ void segundaFase()
     {
         // Continuar para terceira fase
         score = nave.score;
-        faseCompleta(&play);
+        // faseCompleta(&play);
+        bossFight(&play);
         if (play) terceiraFase();
     }
 }
@@ -797,5 +809,5 @@ void primeiraFase()
 
 void start()
 {
-    primeiraFase();
+    segundaFase();
 }

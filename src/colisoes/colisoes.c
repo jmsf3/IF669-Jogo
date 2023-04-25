@@ -238,7 +238,7 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
         if (colisao)
         {            
             // Remover vida do boss
-            boss->hp = boss->hp - 1;
+            boss->hp = boss->hp - 5;
             
             // Remover projétil
             UnloadTexture(nave->projetil[j].sprite);
@@ -250,9 +250,8 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
 
             if (nave->numProjetil > 1)
             {
-                printf("epa1\n");
                 ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil - 1) * sizeof(ProjetilNave));
-                printf("epa2\n");
+                
                 if (aux == NULL)
                 {
                     printf("Erro ao alocar a memória.\n");
