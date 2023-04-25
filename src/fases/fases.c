@@ -18,7 +18,7 @@
 #define LARG_YW 43 * ESCALA2
 #define ALT_GO 28 * ESCALA2
 #define LARG_GO 44 * ESCALA2
-#define TEMPO_FASE 60 // segundos
+#define TEMPO_FASE 10 // segundos
 
 void youWon()
 {
@@ -79,6 +79,75 @@ void faseCompleta(int *play)
     UnloadFont(font);
 }
 
+void bossFight(int* play){
+    char *text[3] = {
+        "OH NAO!!! PARECE Q A OPEN.AI NAO ESTA GOSTANDO DO ESTRAGO NOS GPTS!!!",
+        "*UM SUPER GPT FOI ENVIADO PARA DESTRUIR A TERRA*",
+        "PRESSIONE ENTER PARA IMPEDIR Q A TERRA SEJA DESTRUIDA."
+    };
+    Font font = LoadFont("../res/fonts/alpha_beta.png");
+    Vector2 position[3];
+
+    int totalWidth = 0;
+    int centerX = LARG_JANELA / 2;  // Centro da janela
+
+    for (int i = 0; i < 3; i++)
+    {
+        totalWidth = MeasureTextEx(font, text[i], font.baseSize * 2, 4).x;
+        position[i].x = centerX - totalWidth / 2;  // Centralizar o texto
+        position[i].y = 60 + font.baseSize + 45 * i;
+    }
+
+    while (!IsKeyPressed(KEY_ENTER) && *play)
+    {
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+            for (int i = 0; i < 3; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
+
+        EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
+    }
+
+    UnloadFont(font);
+}
+
+
+void goodEnding(int* play){
+    char *text[3] = {
+        "NOSSA... VOCE PARECE BEM PACIFICO!",
+        "*OPENaI SE IMPRESSIONA POR VOCE NAO DANIFICAR NENHUM GPT!",
+        "TUDO TERMINA BEM, NINGUEM SE FERIU, TODOS ESTAO FELIZES."
+    };
+    Font font = LoadFont("../res/fonts/alpha_beta.png");
+    Vector2 position[3];
+
+    int totalWidth = 0;
+    int centerX = LARG_JANELA / 2;  // Centro da janela
+
+    for (int i = 0; i < 3; i++)
+    {
+        totalWidth = MeasureTextEx(font, text[i], font.baseSize * 2, 4).x;
+        position[i].x = centerX - totalWidth / 2;  // Centralizar o texto
+        position[i].y = 60 + font.baseSize + 45 * i;
+    }
+
+    while (!IsKeyPressed(KEY_ENTER) && *play)
+    {
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+            for (int i = 0; i < 3; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
+
+        EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
+    }
+
+    UnloadFont(font);
+}
+
 void terceiraFase()
 {
     // Inicialização
@@ -132,6 +201,12 @@ void terceiraFase()
     frames = 0;
 
     // Iniciar fase
+    int earthMaxLife = 500;
+    int earthLife = 500;
+
+    Color lifeBackgroundColor = GRAY;
+    Color lifeForegroundColor = GREEN;
+    
     while (nave.hp > 0 && boss.hp > 0 && play)
     {
         // Atualização
@@ -143,12 +218,23 @@ void terceiraFase()
         // Colisões
              
         // Draw
-        BeginDrawing();
-                
+        BeginDrawing();           
             DrawStaticBackground(background); 
                 
             DrawShip(nave);
             DrawShipProjectile(nave);
+
+            Rectangle lifeBackground = { 10, ALT_JANELA - 40, 200, 30 };
+            Rectangle lifeForeground = { 10, ALT_JANELA - 40, (200 * earthLife)/500, 30 }; 
+
+            // Draw lifeBackground
+            DrawRectangleRec(lifeBackground, lifeBackgroundColor);
+
+            // Draw lifeForeground
+            DrawRectangleRec(lifeForeground, lifeForegroundColor);
+
+            // Draw text
+            DrawText(TextFormat("%d / %d", earthLife, earthMaxLife), lifeBackground.x + lifeBackground.width / 2 - MeasureText(TextFormat("%d / %d", earthLife, earthMaxLife), 20) / 2, lifeBackground.y + 7, 20, BLACK);    
 
             DrawBoss(boss);
             DrawEnemyProjectile(projetilBoss, numProjetilBoss);
@@ -156,6 +242,16 @@ void terceiraFase()
         EndDrawing();
 
         frames++;
+
+        if(frames % 300 == 0){
+            earthLife = earthLife - 50;
+            printf("%d", (200 * earthLife)/500);
+        }
+
+        if(earthLife <= 0) {
+            gameOver();
+        }
+
         if (WindowShouldClose()) play = 0;
     }
 
@@ -180,6 +276,17 @@ void terceiraFase()
     // Free
     free(projetilBoss);
     free(nave.projetil);
+
+    if (nave.hp == 0 && play)
+    {
+        // GAME OVER
+        gameOver();
+    }
+    else if (frames >= TEMPO_FASE * FPS && play)
+    {
+        // Continuar para terceira fase
+        goodEnding(&play);
+    }
 }
 
 void segundaFase()
@@ -328,7 +435,7 @@ void segundaFase()
     else if (frames >= TEMPO_FASE * FPS && play)
     {
         // Continuar para terceira fase
-        faseCompleta(&play);
+        bossFight(&play);
         if (play) terceiraFase();
     }
 }
@@ -513,5 +620,7 @@ void primeiraFase()
 
 void start()
 {
-    primeiraFase();
+    // primeiraFase();
+    int play = 1;
+    bossFight(&play);
 }

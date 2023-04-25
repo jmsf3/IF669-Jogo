@@ -285,7 +285,21 @@ void atualizarProjetilBoss(ProjetilInimigo **projetil, int *numProjetil)
 
 void DrawBoss(Boss boss)
 {
+    Rectangle background = { 10, 50, 200, 30 };
+    Rectangle foreground = { 10, 50, (200*boss.hp)/300, 30 };
+    Color backgroundColor = GRAY;
+    Color foregroundColor = RED;
+
     DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
+
+    // Draw background
+    DrawRectangleRec(background, backgroundColor);
+
+    // Draw foreground
+    DrawRectangleRec(foreground, foregroundColor);
+
+    // Draw text
+    DrawText(TextFormat("%d / %d", boss.hp, 300), foreground.x + foreground.width / 2 - MeasureText(TextFormat("%d / %d", boss.hp, 300), 20) / 2, foreground.y + 7, 20, BLACK);
 }
 
 void DrawEnemy(Inimigo *inimigos, int numInimigos)

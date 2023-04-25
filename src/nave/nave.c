@@ -184,7 +184,7 @@ void inicializarNave(Nave *nave)
     nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
     
     nave->tInvencivel = GetTime();
-    nave->hp = 3;
+    nave->hp = 1;
 
     UnloadImage(img);
     UnloadImage(left);
