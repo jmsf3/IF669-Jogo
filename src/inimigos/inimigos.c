@@ -193,7 +193,7 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
     {
         for (int i = 0; i < numInimigos; i++)
         {
-            if (GetRandomValue(0, 1))
+            if (GetRandomValue(0, 1) && inimigos[i].posicao.y > 0)
             {
                 if (frames != 0) PlaySound(inimigos[i].disparo);
                 
@@ -264,8 +264,10 @@ void inicializarBoss(Boss *boss)
     boss->hp = 300;
     boss->velocidade = VEL_BOSS;
     boss->sprite = LoadTexture("../res/inimigos/boss.png");
+    boss->hit = LoadSound("../res/sounds/morte_inimigo.ogg");
     boss->disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
     boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
+    
     boss->direcao = (Vector2) {1,1};
     boss->font = LoadFont("../res/fonts/alpha_beta.png");
 }
@@ -282,21 +284,25 @@ void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int
         boss->direcao.y *= -1;
 }
 
-void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, Nave nave)
+void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, Nave nave, char side)
 {
     projetil->sprite = LoadTexture("../res/inimigos/projetil_inimigo.png");
     projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, boss.posicao));
-    projetil->posicao = Vector2Add(boss.posicao, Vector2Scale(projetil->direcao, VEL_PROJETIL));
+
+    if (side == 'l')
+        projetil->posicao = Vector2Add(boss.posicao, (Vector2) {3 * ESCALA_B, 12 * ESCALA_B});
+    else if (side == 'r')
+        projetil->posicao = Vector2Add(boss.posicao, (Vector2) {14 * ESCALA_B, 12 * ESCALA_B});
 }
 
 void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjetil, Nave nave, int frames)
 {
-    // Disparar a cada 0.5 segundos
-    if (frames != 0 && frames % 30 == 0)
+    // Disparar a cada 2 segundos
+    if (frames != 0 && frames % (2 * FPS) == 0 && boss.hp > 0)
     {
         if (frames != 0) PlaySound(boss.disparo);
         
-        ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
+        ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 2) * sizeof(ProjetilInimigo));
 
         if (aux == NULL)
         {
@@ -305,8 +311,9 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
         }
 
         *projetil = aux;
-        incializarProjetilBoss(&((*projetil)[*numProjetil]), boss, nave);
-        (*numProjetil)++;
+        incializarProjetilBoss(&((*projetil)[*numProjetil]), boss, nave, 'l');
+        incializarProjetilBoss(&((*projetil)[*numProjetil + 1]), boss, nave, 'r');
+        *numProjetil += 2;
     }
 
     // Movimentação
@@ -361,7 +368,8 @@ void DrawBoss(Boss boss)
     Color backgroundColor = GRAY;
     Color foregroundColor = RED;
 
-    DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
+    // Sprite Boss
+    if (boss.hp > 0) DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
 
     // Draw Background
     DrawRectangleRec(background, backgroundColor);

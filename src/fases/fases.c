@@ -20,7 +20,6 @@
 #define ALT_GO 28 * ESCALA2
 #define LARG_GO 44 * ESCALA2
 #define TEMPO_FASE 30 // segundos
-#define N_GPTS_P_FASE 10
 
 int score = 0;
 
@@ -121,7 +120,7 @@ void bossFight(int* play)
     UnloadFont(font);
 }
 
-void gptIsDead()
+void gptIsDead(int *play)
 {
     char *text[4] = {
         "MISSAO CUMPRIDA.",
@@ -144,19 +143,21 @@ void gptIsDead()
         position[i].y = centerY - (textHeight * 1.5) + (i * textHeight);
     }
 
-    while (!IsKeyPressed(KEY_ENTER))
+    while (!IsKeyPressed(KEY_ENTER) && *play)
     {
         BeginDrawing();
             ClearBackground(BLACK);
             for (int i = 0; i < 4; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
         EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
     }
 
     UnloadFont(font);
-    youWon();
+    if (*play) youWon();
 }
 
-void gptKilledYou()
+void gptKilledYou(int *play)
 {
         char *text[5] = {
         "MORREU NA PRAIA.",
@@ -180,19 +181,21 @@ void gptKilledYou()
         position[i].y = centerY - (textHeight * 1.5) + (i * textHeight);
     }
 
-    while (!IsKeyPressed(KEY_ENTER))
+    while (!IsKeyPressed(KEY_ENTER) && *play)
     {
         BeginDrawing();
             ClearBackground(BLACK);
             for (int i = 0; i < 5; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
         EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
     }
 
     UnloadFont(font);
-    gameOver();
+    if (*play) gameOver();
 }
 
-void goodEnding()
+void goodEnding(int *play)
 {
     char *text[4] = {
         "GOOD ENDING.",
@@ -215,19 +218,21 @@ void goodEnding()
         position[i].y = centerY - (textHeight * 1.5) + (i * textHeight);
     }
 
-    while (!IsKeyPressed(KEY_ENTER))
+    while (!IsKeyPressed(KEY_ENTER) && *play)
     {
         BeginDrawing();
             ClearBackground(BLACK);
             for (int i = 0; i < 4; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
         EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
     }
 
     UnloadFont(font);
-    youWon();
+    if (*play) youWon();
 }
 
-void exterminationEnding()
+void exterminationEnding(int *play)
 {
         char *text[6] = {
         "EXTERMINATION ENDING.",
@@ -252,16 +257,18 @@ void exterminationEnding()
         position[i].y = centerY - (textHeight * 1.5) + (i * textHeight);
     }
 
-    while (!IsKeyPressed(KEY_ENTER))
+    while (!IsKeyPressed(KEY_ENTER) && *play)
     {
         BeginDrawing();
             ClearBackground(BLACK);
             for (int i = 0; i < 6; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
         EndDrawing();
+
+        if (WindowShouldClose()) *play = 0;
     }
 
     UnloadFont(font);
-    youWon();
+    if (*play) youWon();
 }
 
 void terceiraFase()
@@ -296,9 +303,8 @@ void terceiraFase()
     while (transparency >= 0 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
-
+        SetMusicVolume(music, volume);
         atualizarPropulsor(&nave, frames, 'm');
         
         // Draw
@@ -325,7 +331,9 @@ void terceiraFase()
     while (nave.hp > 0 && boss.hp > 0 && play)
     {
         // Atualização
+        UpdateMusicStream(music);
         atualizarNave(&nave, frames);
+        atualizarPiloto(&nave, frames);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
         atualizarProjetilBoss(boss, &projetilBoss, &numProjetilBoss, nave, frames);
 
@@ -361,14 +369,26 @@ void terceiraFase()
         inicializarExplosao(nave.posicao, &numExplosoes, &explosoes, 1);
     }
 
+    Explosao explosaoBoss;
+    if (boss.hp == 0)
+    {
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
+        inicializarExplosaoBoss(boss.posicao, &explosaoBoss);
+        PlaySound(explosao);
+    }
+
     while (transparency <= 255 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
+        SetMusicVolume(music, volume);
+
         atualizarNave(&nave, frames);
+        atualizarPiloto(&nave, frames);
+        atualizarExplosaoBoss(&explosaoBoss);
         atualizarExplosao(&numExplosoes, &explosoes);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
+        atualizarProjetilBoss(boss, &projetilBoss, &numProjetilBoss, nave, frames);
 
         // Draw
         BeginDrawing();
@@ -382,6 +402,8 @@ void terceiraFase()
             DrawEnemyProjectile(projetilBoss, numProjetilBoss);
             
             DrawExplosoes(explosoes, numExplosoes);
+            if (boss.hp == 0) DrawExplosaoBoss(explosaoBoss);
+
             DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
 
         EndDrawing();
@@ -417,11 +439,11 @@ void terceiraFase()
     if (nave.hp == 0 && play)
     {
         // GAME OVER
-        gptKilledYou();
+        gptKilledYou(&play);
     }
-    else if (frames >= TEMPO_FASE * FPS && play)
+    else if (play)
     {
-        gptIsDead();
+        gptIsDead(&play);
     }
 }
 
@@ -455,8 +477,8 @@ void segundaFase()
     while (transparency >= 0 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
+        SetMusicVolume(music, volume);
         atualizarPropulsor(&nave, frames, 'm');
 
         // Draw
@@ -522,13 +544,18 @@ void segundaFase()
     while (transparency <= 255 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
+        SetMusicVolume(music, volume);
+
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
         atualizarExplosao(&numExplosoes, &explosoes);
-        atualizarInimigos(&inimigo, &numInimigos, frames);
-        atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+        
+        if (nave.hp == 0)
+        {
+            atualizarInimigos(&inimigo, &numInimigos, frames);
+            atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+        }
 
         // Draw
         BeginDrawing();
@@ -592,13 +619,20 @@ void segundaFase()
         // GAME OVER
         score = 0;
         gameOver();
+    } 
+    else if(frames >= TEMPO_FASE * FPS && play && nave.score == 0)
+    {
+        goodEnding(&play);
+    }
+    else if (frames >= TEMPO_FASE * FPS && play && nave.score == (TEMPO_FASE / 10) * 8 * 100)
+    {
+        exterminationEnding(&play);
     }
     else if (frames >= TEMPO_FASE * FPS && play)
     {
         // Continuar para terceira fase
         score = nave.score;
-        // faseCompleta(&play);
-        bossFight(&play);
+        faseCompleta(&play);
         if (play) terceiraFase();
     }
 }
@@ -632,8 +666,8 @@ void primeiraFase()
     while (transparency >= 0 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
+        SetMusicVolume(music, volume);
         
         // Draw
         BeginDrawing();
@@ -665,6 +699,7 @@ void primeiraFase()
         // Atualização
         UpdateMusicStream(music);
         atualizarNave(&nave, frames);
+        atualizarPiloto(&nave, frames);
 
         // Draw
         BeginDrawing();
@@ -690,6 +725,7 @@ void primeiraFase()
         // Atualização
         UpdateMusicStream(music);
         atualizarNave(&nave, frames);
+        atualizarPiloto(&nave, frames);
         atualizarExplosao(&numExplosoes, &explosoes);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
@@ -728,13 +764,20 @@ void primeiraFase()
     while (transparency <= 255 && play)
     {
         // Atualização
-        SetMusicVolume(music, volume);
         UpdateMusicStream(music);
-        atualizarNave(&nave, frames);
-        atualizarExplosao(&numExplosoes, &explosoes);
-        atualizarInimigos(&inimigo, &numInimigos, frames);
-        atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+        SetMusicVolume(music, volume);
 
+        atualizarNave(&nave, frames);
+        atualizarPiloto(&nave, frames);
+        atualizarPiloto(&nave, frames);
+        atualizarExplosao(&numExplosoes, &explosoes);
+
+        if (nave.hp == 0)
+        {
+            atualizarInimigos(&inimigo, &numInimigos, frames);
+            atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
+        }
+        
         // Draw
         BeginDrawing();
 
@@ -809,5 +852,5 @@ void primeiraFase()
 
 void start()
 {
-    segundaFase();
+    primeiraFase();
 }

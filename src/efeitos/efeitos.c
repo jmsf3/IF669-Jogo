@@ -6,6 +6,7 @@
 #define ALT_SPRITE 8
 #define LARG_SPRITE 8
 #define ESCALA 5
+#define ESCALA_B 15
 
 void inicializarExplosao(Vector2 posicao, int *numExplosoes, Explosao **explosoes, int tipo)
 {
@@ -40,7 +41,7 @@ void inicializarExplosao(Vector2 posicao, int *numExplosoes, Explosao **explosoe
     *numExplosoes += 1;
 }
 
-void atualizarExplosao (int *numExplosoes, Explosao **explosoes)
+void atualizarExplosao(int *numExplosoes, Explosao **explosoes)
 {
     for(int i = 0; i < *numExplosoes; i++)
     {
@@ -82,5 +83,35 @@ void DrawExplosoes(Explosao *explosoes, int numExplosoes)
     for (int i = 0; i < numExplosoes; i++)
     {
         DrawTextureEx(explosoes[i].spritesheet[(int) ((explosoes[i].tempo)/(60*0.00125))], (Vector2) {explosoes[i].dimensoes.x - LARG_SPRITE / 2, explosoes[i].dimensoes.y - ALT_SPRITE / 2}, 0, ESCALA, WHITE);
+    }
+}
+
+void inicializarExplosaoBoss(Vector2 posicao, Explosao *explosao)
+{
+    Image img;
+    img = LoadImage("../res/animacoes/explosao2.png");
+
+    for (int j = 0; j < 4; j++)
+    {
+        Image sprite = ImageFromImage(img, (Rectangle) {j * 8, 0, 8, 8});
+        explosao->spritesheet[j] = LoadTextureFromImage(sprite);
+        UnloadImage(sprite);
+    }
+
+    explosao->dimensoes = (Rectangle) {posicao.x, posicao.y, LARG_SPRITE * ESCALA, ALT_SPRITE * ESCALA};
+    explosao->centroSprite = (Vector2) {LARG_SPRITE * ESCALA * 0.5, ALT_SPRITE * ESCALA * 0.5};
+    explosao->tempo = 0;
+}
+
+void atualizarExplosaoBoss (Explosao *explosao)
+{
+    explosao->tempo = explosao->tempo + GetFrameTime();
+}
+
+void DrawExplosaoBoss(Explosao explosao)
+{
+    if (explosao.tempo < 0.240)
+    {
+        DrawTextureEx(explosao.spritesheet[(int) ((explosao.tempo)/(60*0.00125))], (Vector2) {explosao.dimensoes.x - LARG_SPRITE / 2, explosao.dimensoes.y - ALT_SPRITE / 2}, 0, ESCALA_B, WHITE);
     }
 }

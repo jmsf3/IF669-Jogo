@@ -229,14 +229,16 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
      // Colisão Boss-Projétil
     int colisao = 0;
     Rectangle hitboxBoss = {(*boss).posicao.x, (*boss).posicao.y, 150, 150};
-
     for (int j = 0; j < nave->numProjetil && !colisao; j++)
     {
         Rectangle hitboxProjetil= {nave->projetil[j].posicao.x, nave->projetil[j].posicao.y, LARG_PROJETIL_NV, ALT_PROJETIL_NV};
         colisao = CheckCollisionRecs(hitboxBoss, hitboxProjetil);
 
         if (colisao)
-        {            
+        {         
+            // Som de hit
+            PlaySound(boss->hit);
+
             // Remover vida do boss
             boss->hp = boss->hp - 5;
             
@@ -267,6 +269,24 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
             }
 
             (nave->numProjetil)--;
+        }
+    }
+
+    // Colisão Nave-Boss
+    if (GetTime() > nave->tInvencivel)
+    {
+        Rectangle hitboxNave = {nave->posicao.x, nave->posicao.y, LARG_INIMIGO, ALT_INIMIGO};
+        Rectangle hitboxInimigo = {boss->posicao.x, boss->posicao.y, 80, 80};
+        int colisao = CheckCollisionRecs(hitboxNave, hitboxInimigo);
+
+        if (colisao)
+        {
+            // Som
+            PlaySound(nave->hit);
+
+            // Invencibilidade e HP
+            nave->tInvencivel = GetTime() + 1;
+            nave->hp -= 1;
         }
     }
 }

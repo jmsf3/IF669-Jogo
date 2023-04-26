@@ -11,8 +11,12 @@ typedef struct
     double tempo;
 } Explosao;
 
-void inicializarExplosao (Vector2 posicao, int *numExplosoes, Explosao **explosoes, int tipo);
-void atualizarExplosao (int *numExplosoes, Explosao **explosoes);
+void inicializarExplosao(Vector2 posicao, int *numExplosoes, Explosao **explosoes, int tipo);
+void atualizarExplosao(int *numExplosoes, Explosao **explosoes);
 void DrawExplosoes(Explosao *explosoes, int numExplosoes);
+
+void inicializarExplosaoBoss(Vector2 posicao, Explosao *explosao);
+void atualizarExplosaoBoss(Explosao *explosao);
+void DrawExplosaoBoss(Explosao explosao);
 
 #endif
