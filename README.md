@@ -17,6 +17,10 @@ Para o projeto, escolhemos desenvolver um jogo do estilo [shoot ‘em up](https:
 
 * A terceira face que mostra o combate do piloto com a nave-mãe para destruir o ***Kernel*** e interromper a invasão.
 
+<p align="center">
+  <img src="fase3.gif"/>
+</p>
+
 # Desenvolvimento
 A estrutura do nosso projeto está segmentada da seguinte maneira:
 * A pasta ***dep***, que contém as depêndencias do projeto.
@@ -27,5 +31,5 @@ A estrutura do nosso projeto está segmentada da seguinte maneira:
 Para compilar o projeto em um ambiente ***Linux*** basta abrir o terminal na pasta ***src*** do projeto e executar a linha de comando abaixo:
 
 ```
-gcc ./main.c ./nave/nave.c ./inimigos/inimigos.c ./colisoes/colisoes.c ./backgrounds/backgrounds.c ./menu/menu.c ./fases/fases.c -o projeto-jogo -I ../dep/include/ -L ../dep/lib/ -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+gcc ./main.c ./nave/nave.c ./inimigos/inimigos.c ./colisoes/colisoes.c ./backgrounds/backgrounds.c ./efeitos/efeitos.c ./menu/menu.c ./fases/fases.c -o projeto-jogo -I ../dep/include/ -L ../dep/lib/ -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 ```
