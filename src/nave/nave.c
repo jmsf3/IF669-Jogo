@@ -6,7 +6,9 @@
 #define FPS 60
 #define ESCALA 5
 #define ALT_NAVE 8 * ESCALA
-#define LARG_NAVE 8 * ESCALA 
+#define LARG_NAVE 8 * ESCALA
+#define ALT_PILOTO 8 * ESCALA
+#define LARG_PILOTO 8 * ESCALA 
 #define ALT_PROJETIL 10 * ESCALA 
 #define LARG_PROJETIL 3 * ESCALA 
 #define ALT_PROPULSOR 3 * ESCALA
@@ -15,22 +17,106 @@
 #define LARG_JANELA 1000 
 #define VEL_NAVE 4
 #define VEL_PROJETIL 5 
-#define INTERVALO_DISPARO 0.25
+#define INTERVALO_DISPARO 0.25 // Segundos
+
+Texture2D spriteCoracao;
+Texture2D spriteProjetil;
+Texture2D spritesheetNave[3];
+Texture2D spritesheetPiloto[5];
+Texture2D spritesheetPropulsor[4];
+
+Sound disparoNave;
+
+Font alphaBeta;
+
+void loadNave()
+{
+    // Sprites da nave
+    Image img0 = LoadImage("../res/nave/nave.png");
+
+    for (int i = 0; i < 3; i++)
+    {
+        Image spriteNave = ImageFromImage(img0, (Rectangle) {i * 8, 0, 8, 8});
+        spritesheetNave[i] = LoadTextureFromImage(spriteNave);
+        UnloadImage(spriteNave);
+    }
+
+    UnloadImage(img0);
+
+    // Sprites do propulsor
+    Image img1 = LoadImage("../res/nave/propulsores.png");
+
+    for (int i = 0; i < 4; i++)
+    {
+
+        Image spritePropulsor = ImageFromImage(img1, (Rectangle) {i * 1, 0, 1, 3});
+        spritesheetPropulsor[i] = LoadTextureFromImage(spritePropulsor);
+        UnloadImage(spritePropulsor);
+    }
+
+    UnloadImage(img1);
+
+    // Sprites do piloto
+    Image img2 = LoadImage("../res/nave/piloto.png");
+
+    for (int i = 0; i < 5; i++) 
+    {
+        Image spritePiloto = ImageFromImage(img2,  (Rectangle) {i * 8, 0, 8, 8});
+        spritesheetPiloto[i] = LoadTextureFromImage(spritePiloto);
+        UnloadImage(spritePiloto);
+    }
+
+    UnloadImage(img2);
+
+    // Sprite do projétil
+    spriteProjetil = LoadTexture("../res/nave/projetil_nave.png");
+
+    // Sprite do coração
+    spriteCoracao = LoadTexture("../res/interface/coracao.png");
+
+    // Som de disparo
+    disparoNave = LoadSound("../res/sounds/disparo_nave.ogg");
+
+    // Fonte
+    alphaBeta = LoadFont("../res/fonts/alpha_beta.png");
+}
+
+void unloadNave()
+{
+    // Sprites da nave
+    for (int i = 0; i < 3; i++)
+    {
+        UnloadTexture(spritesheetNave[i]);
+    }
+
+    // Sprites do propulsor
+    for (int i = 0; i < 4; i++)
+    {
+        UnloadTexture(spritesheetPropulsor[i]);
+    }
+
+    // Sprites do piloto
+    for (int i = 0; i < 5; i++) 
+    {
+        UnloadTexture(spritesheetPiloto[i]);
+    }
+
+    // Sprite do projétil
+    UnloadTexture(spriteProjetil);
+
+    // Sprite do coração
+    UnloadTexture(spriteCoracao);
+
+    // Som de disparo
+    UnloadSound(disparoNave);
+
+    // Fonte
+    UnloadFont(alphaBeta);
+}
 
 void inicializarPiloto(Nave *nave)
 {
-    Image img = LoadImage("../res/nave/piloto.png");
-    int larguraImagem = 8;
-    int alturaImagem = 8;
-
-    for (int i = 0; i < 5; i++) {
-        Rectangle retangulo = { i * larguraImagem, 0, larguraImagem, alturaImagem };
-        Image sprite = ImageFromImage(img, retangulo);
-        nave->piloto[i] = LoadTextureFromImage(sprite);
-        UnloadImage(sprite);
-    }
-
-    UnloadImage(img);
+    nave->spritePiloto = spritesheetPiloto[0];
 }
 
 void atualizarPiloto(Nave *nave, int frames)
@@ -40,29 +126,20 @@ void atualizarPiloto(Nave *nave, int frames)
     {        
         if (frames % (5 * (FPS / 5)) == i * (FPS / 5))
         {
-            nave->piloto[0] = nave->piloto[i];
+            nave->spritePiloto = spritesheetPiloto[i];
         }
     }
 }
 
 void inicializarPropulsor(Propulsor *propulsor)
 {
-    Image img = LoadImage("../res/nave/propulsores.png");
-
     for (int i = 0; i < 2; i++)
     {
-        for (int j = 0; j < 4; j++)
-        {
-            Image sprite = ImageFromImage(img, (Rectangle) {j, 0, 1, 3});
-            propulsor[i].spritesheet[j] = LoadTextureFromImage(sprite);
-            UnloadImage(sprite);
-        }
+        propulsor[i].sprite = spritesheetPropulsor[0];
     }
-
-    UnloadImage(img);
 }
 
-void atualizarPropulsor(Nave *nave, int frames, char sprite)
+void atualizarPropulsor(Nave *nave, int frames, char spriteNave)
 {
     // Animação
     for (int i = 0; i < 2; i++)
@@ -71,19 +148,19 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
         {        
             if (frames % (4 * (FPS / 10)) == j * (FPS / 10))
             {
-                nave->propulsor[i].sprite = nave->propulsor[i].spritesheet[j];
+                nave->propulsor[i].sprite = spritesheetPropulsor[j];
             }
         }
     }
 
     // Posição
-    if (sprite == 'l')
+    if (spriteNave == 'l')
     {
         nave->propulsor[0].posicao.x = nave->posicao.x + 2 * ESCALA;
         nave->propulsor[1].posicao.x = nave->posicao.x + 4 * ESCALA;
        
     }
-    else if (sprite == 'r')
+    else if (spriteNave == 'r')
     {
         nave->propulsor[0].posicao.x = nave->posicao.x + 3 * ESCALA;
         nave->propulsor[1].posicao.x = nave->posicao.x + 5 * ESCALA;
@@ -99,13 +176,12 @@ void atualizarPropulsor(Nave *nave, int frames, char sprite)
 
 void inicializarProjetilNave(Nave *nave)
 {
-    nave->projetil[nave->numProjetil].tDisparo = GetTime();
-    nave->projetil[nave->numProjetil].sprite = LoadTexture("../res/nave/projetil_nave.png");
-    nave->projetil[nave->numProjetil].posicao = (Vector2) {nave->posicao.x, nave->posicao.y - 2 * ESCALA};
-
-    nave->projetil[nave->numProjetil + 1].tDisparo = GetTime();
-    nave->projetil[nave->numProjetil + 1].sprite = LoadTexture("../res/nave/projetil_nave.png");
-    nave->projetil[nave->numProjetil + 1].posicao = (Vector2) {nave->posicao.x + 5 * 5, nave->posicao.y - 2 * ESCALA};
+    for (int i = 0; i < 2; i++)
+    {
+        nave->projetil[nave->numProjetil + i].tDisparo = GetTime();
+        nave->projetil[nave->numProjetil + i].sprite = spriteProjetil;
+        nave->projetil[nave->numProjetil + i].posicao = (Vector2) {nave->posicao.x + 5 * ESCALA * i, nave->posicao.y - 2 * ESCALA};
+    } 
 }
 
 void atualizarProjetilNave(Nave *nave)
@@ -130,7 +206,7 @@ void atualizarProjetilNave(Nave *nave)
         if (dt > INTERVALO_DISPARO)
         {
             // Efeito sonoro
-            PlaySound(nave->disparo);
+            PlaySound(disparoNave);
 
             ProjetilNave *aux = (ProjetilNave *) realloc(nave->projetil, (nave->numProjetil + 2) * sizeof(ProjetilNave));
 
@@ -158,9 +234,7 @@ void atualizarProjetilNave(Nave *nave)
     for (int i = 0; i < nave->numProjetil; i++)  
     {
         if (nave->projetil[i].posicao.y <= -ALT_PROJETIL)
-        {
-            UnloadTexture(nave->projetil[i].sprite);
-            
+        {            
             for (int j = i; j < nave->numProjetil - 1; j++)
             {
                 nave->projetil[j] = nave->projetil[j + 1];
@@ -195,54 +269,35 @@ void inicializarNave(Nave *nave, int score)
     inicializarPiloto(nave);
 
     nave->posicao = (Vector2) {(LARG_JANELA - LARG_NAVE) / 2, ALT_JANELA - 2 * ALT_NAVE};
-
-    Image img = LoadImage("../res/nave/nave.png");
-    Image left = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
-    Image middle = ImageFromImage(img, (Rectangle) {8, 0, 8, 8});
-    Image right = ImageFromImage(img, (Rectangle) {16, 0, 8, 8});
-
-    nave->spritesheet[0] = LoadTextureFromImage(left);
-    nave->spritesheet[1] = LoadTextureFromImage(middle);
-    nave->spritesheet[2] = LoadTextureFromImage(right);
-    nave->sprite = nave->spritesheet[1];
+    nave->spriteNave = spritesheetNave[1];
 
     nave->numProjetil = 0;
-    nave->projetil = NULL;
+    nave->projetil = NULL;    
 
-    nave->spriteCoracao = LoadTexture("../res/interface/coracao.png");
-    nave->font = LoadFont("../res/fonts/alpha_beta.png");
-    nave->disparo = LoadSound("../res/sounds/disparo_nave.ogg");
-    nave->hit = LoadSound("../res/sounds/hit_nave.ogg");
-    
     nave->tInvencivel = GetTime();
     nave->score = score;
     nave->hp = 3;
-
-    UnloadImage(img);
-    UnloadImage(left);
-    UnloadImage(middle);
-    UnloadImage(right);
 }
 
 void atualizarNave(Nave *nave, int frames)
 {
-    char sprite;
+    char spriteNave;
     
     // Animação da nave
     if (IsKeyDown(KEY_LEFT))
     {
-        nave->sprite = nave->spritesheet[0];
-        sprite = 'l';
+        nave->spriteNave = spritesheetNave[0];
+        spriteNave = 'l';
     }
     else if (IsKeyDown(KEY_RIGHT))
     {
-        nave->sprite = nave->spritesheet[2];
-        sprite = 'r';
+        nave->spriteNave = spritesheetNave[2];
+        spriteNave = 'r';
     }
     else 
     {
-        nave->sprite = nave->spritesheet[1];
-        sprite = 'm';
+        nave->spriteNave = spritesheetNave[1];
+        spriteNave = 'm';
     }
 
     // Movimentação
@@ -256,7 +311,7 @@ void atualizarNave(Nave *nave, int frames)
         nave->posicao.y += VEL_NAVE;
     
      // Animação dos propulsores 
-    atualizarPropulsor(nave, frames, sprite);
+    atualizarPropulsor(nave, frames, spriteNave);
     atualizarPiloto(nave, frames);
 
     // Projéteis
@@ -268,7 +323,7 @@ void DrawShip(Nave nave)
     if (nave.hp > 0)
     {
         // Nave
-        DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA, WHITE);
+        DrawTextureEx(nave.spriteNave, nave.posicao, 0, ESCALA, WHITE);
 
         // Propulsores da nave
         for (int i = 0; i < 2; i++)
@@ -276,18 +331,18 @@ void DrawShip(Nave nave)
             DrawTextureEx(nave.propulsor[i].sprite, nave.propulsor[i].posicao, 0, ESCALA, WHITE);
         }
 
-        // Vidas
-        for (int i = 0; i < nave.hp; i++)
-        {
-            DrawTextureEx(nave.spriteCoracao, (Vector2) {10 + 8 * ESCALA * i, ALT_JANELA - 8 * ESCALA}, 0, ESCALA, WHITE);
-        }
-
         // Piloto
-        DrawTextureEx(nave.piloto[0], (Vector2) {LARG_JANELA - 10 * ESCALA , ALT_JANELA - 10 * ESCALA}, 0, ESCALA, WHITE);
+        DrawTextureEx(nave.spritePiloto, (Vector2) {LARG_JANELA - 10 * ESCALA , ALT_JANELA - 10 * ESCALA}, 0, ESCALA, WHITE);
     }
     
+    // Vidas
+    for (int i = 0; i < nave.hp; i++)
+    {
+        DrawTextureEx(spriteCoracao, (Vector2) {10 + 8 * ESCALA * i, ALT_JANELA - 8 * ESCALA}, 0, ESCALA, WHITE);
+    }
+
     // Score
-    DrawTextEx(nave.font, TextFormat("SCORE: %05d", nave.score), (Vector2) {10, 10}, nave.font.baseSize * 2, 4, WHITE);
+    DrawTextEx(alphaBeta, TextFormat("SCORE: %05d", nave.score), (Vector2) {10, 10}, alphaBeta.baseSize * 2, 4, WHITE);
 }
 
 void DrawShipProjectile(Nave nave)

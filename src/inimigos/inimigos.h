@@ -7,11 +7,8 @@ typedef struct
 {
     int hp; // HP
     int pdrAtq; // Padrão de ataque
-    Sound morte; // Som de morte
-    Sound disparo; // Som de disparo
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
-    Texture2D spritesheet[2]; // Spritesheet
 } Inimigo;
 
 typedef struct
@@ -25,14 +22,16 @@ typedef struct
 {
     int hp; // HP
     int velocidade; // Velocidade
-    Font font; // Fonte
-    Sound hit; // Som de hit
-    Sound disparo; // Som de disparo
+    Vector2 direcao; // Direção
     Vector2 posicao; // Posição
     Texture2D sprite; // Sprite
-    Vector2 direcao; // Direção do boss
-
 } Boss;
+
+void loadInimigos();
+void unloadInimigos();
+
+void loadBoss();
+void unloadBoss();
 
 void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave nave);
 void atualizarProjetilInimigo(Inimigo *inimigo, int numInimigos, Nave nave, ProjetilInimigo **projetil, int *numProjetil, int frames);

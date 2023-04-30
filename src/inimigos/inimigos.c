@@ -21,6 +21,69 @@
 #define VEL_PROJETIL 4
 #define ESPACO 3 * LARG_INIMIGO
 
+Sound disparoInimigo;
+Texture2D spriteBoss;
+Texture2D spriteProjetilInimigo;
+Texture2D spritesheetInimigo[2];
+
+void loadInimigos()
+{
+    // Sprites do inimigo
+    Image img0 = LoadImage("../res/inimigos/inimigo.png");
+
+    for (int i = 0; i < 2; i++)
+    {
+        Image spriteInimigo = ImageFromImage(img0, (Rectangle) {0, i * 8, 8, 8});
+        spritesheetInimigo[i] = LoadTextureFromImage(spriteInimigo);
+        UnloadImage(spriteInimigo);
+    }
+
+    // Sprite do projétil do inimigo
+    spriteProjetilInimigo = LoadTexture("../res/inimigos/projetil_inimigo.png");
+
+    // Disparo do inimigo
+    disparoInimigo = LoadSound("../res/sounds/disparo_inimigo.ogg");
+}
+
+void unloadInimigos()
+{
+    // Sprites do inimigo
+    for (int i = 0; i < 2; i++)
+    {
+        UnloadTexture(spritesheetInimigo[i]);
+    }
+
+    // Sprite do projétil do inimigo
+    UnloadTexture(spriteProjetilInimigo);
+
+    // Disparo do inimigo
+    UnloadSound(disparoInimigo);
+}
+
+void loadBoss()
+{
+    // Sprite do boss
+    spriteBoss = LoadTexture("../res/inimigos/boss.png");
+
+    // Sprite do projétil do inimigo
+    spriteProjetilInimigo = LoadTexture("../res/inimigos/projetil_inimigo.png");
+
+    // Disparo do inimigo
+    disparoInimigo = LoadSound("../res/sounds/disparo_inimigo.ogg");
+}
+
+void unloadBoss()
+{
+    // Sprite do boss
+    UnloadTexture(spriteBoss);
+
+    // Sprite do projétil do inimigo
+    UnloadTexture(spriteProjetilInimigo);
+
+    // Disparo do inimigo
+    UnloadSound(disparoInimigo);
+}
+
 void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 {
     // Alocar memória dinamicamente
@@ -35,27 +98,19 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 
     *inimigos = aux;
 
-    // Dar load nas texturas e nos sons dos inimigos
-    Image img = LoadImage("../res/inimigos/inimigo.png");
-    Image up = ImageFromImage(img, (Rectangle) {0, 0, 8, 8});
-    Image down = ImageFromImage(img, (Rectangle) {0, 8, 8, 8});
-
+    // Setar sprite inicial dos inimigos
     for (int i = *numInimigos; i < *numInimigos + 8; i++)
     {
-        ((*inimigos)[i]).spritesheet[0] = LoadTextureFromImage(up);
-        ((*inimigos)[i]).spritesheet[1] = LoadTextureFromImage(down);
-        ((*inimigos)[i]).disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
-        ((*inimigos)[i]).morte = LoadSound("../res/sounds/morte_inimigo.ogg");
+        ((*inimigos)[i]).sprite = spritesheetInimigo[0];
     }
 
-    // Escolher aleatóriamente o padrão de ataque dos inimigos que serão incialiazados
+    // Escolher aleatóriamente o padrão de ataque dos inimigos
     int pdr = GetRandomValue(0, 1);
     
     // Setar as posições iniciais dos inimigos
     for (int i = 0; i < 4; i++)
     {
-        int j = *numInimigos + i;
-        ((*inimigos)[j]).pdrAtq = pdr;
+        int j = *numInimigos + i; ((*inimigos)[j]).pdrAtq = pdr;
 
         if (pdr == 0)
             ((*inimigos)[j]).posicao.x = (LARG_JANELA / 2 + i * ESPACO) - LARG_INIMIGO / 2; 
@@ -65,8 +120,7 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
 
     for (int i = 4; i < 8; i++)
     {
-        int j = *numInimigos + i;
-        ((*inimigos)[j]).pdrAtq = pdr + 2;
+        int j = *numInimigos + i; ((*inimigos)[j]).pdrAtq = pdr + 2;
 
         if (pdr == 0)
             ((*inimigos)[j]).posicao.x = (LARG_JANELA / 2 - (i - 4) * ESPACO) - LARG_INIMIGO / 2; 
@@ -75,10 +129,6 @@ void inicializarInimigos(Inimigo **inimigos, int *numInimigos)
     }
 
     *numInimigos += 8;
-
-    UnloadImage(img);
-    UnloadImage(up);
-    UnloadImage(down);
 }
 
 void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
@@ -91,9 +141,9 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
     {
         for (int j = 0; j < 2; j ++)
         {        
-            if (frames % (2 * (FPS / 3)) == j * (FPS / 3))
+            if (frames % (2 * (FPS / 2)) == j * (FPS / 2))
             {
-                ((*inimigos)[i]).sprite = ((*inimigos)[i]).spritesheet[j];
+                ((*inimigos)[i]).sprite = spritesheetInimigo[j];
             }
         }
     }
@@ -149,8 +199,6 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
         if (c0 || c1 || c2 || c3)
         {
-            UnloadTexture(((*inimigos)[i]).sprite);
-
             for (int j = i; j < *numInimigos - 1; j++)
             {
                 (*inimigos)[j] = (*inimigos)[j + 1];
@@ -181,7 +229,7 @@ void atualizarInimigos(Inimigo **inimigos, int *numInimigos, int frames)
 
 void incializarProjetilInimigo(ProjetilInimigo *projetil, Inimigo inimigo, Nave nave)
 {
-    projetil->sprite = LoadTexture("../res/inimigos/projetil_inimigo.png");
+    projetil->sprite = spriteProjetilInimigo;
     projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, inimigo.posicao));
     projetil->posicao = Vector2Add(inimigo.posicao, Vector2Scale(projetil->direcao, VEL_PROJETIL));
 }
@@ -195,7 +243,7 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
         {
             if (GetRandomValue(0, 1) && inimigos[i].posicao.y > 0)
             {
-                if (frames != 0) PlaySound(inimigos[i].disparo);
+                if (frames != 0) PlaySound(disparoInimigo);
                 
                 ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 1) * sizeof(ProjetilInimigo));
 
@@ -228,8 +276,6 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
 
         if (c0 || c1 || c2)
         {
-            UnloadTexture(((*projetil)[i]).sprite);
-
             for (int j = i; j < *numProjetil - 1; j++)
             {
                 (*projetil)[j] = (*projetil)[j + 1];
@@ -263,13 +309,8 @@ void inicializarBoss(Boss *boss)
 {
     boss->hp = 300;
     boss->velocidade = VEL_BOSS;
-    boss->sprite = LoadTexture("../res/inimigos/boss.png");
-    boss->hit = LoadSound("../res/sounds/morte_inimigo.ogg");
-    boss->disparo = LoadSound("../res/sounds/disparo_inimigo.ogg");
-    boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
-    
     boss->direcao = (Vector2) {1,1};
-    boss->font = LoadFont("../res/fonts/alpha_beta.png");
+    boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
 }
 
 void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int frames)
@@ -286,7 +327,7 @@ void atualizarBoss(Boss *boss, ProjetilInimigo **projetil, int *numProjetil, int
 
 void incializarProjetilBoss(ProjetilInimigo *projetil, Boss boss, Nave nave, char side)
 {
-    projetil->sprite = LoadTexture("../res/inimigos/projetil_inimigo.png");
+    projetil->sprite = spriteProjetilInimigo;
     projetil->direcao = Vector2Normalize(Vector2Subtract(nave.posicao, boss.posicao));
 
     if (side == 'l')
@@ -300,7 +341,7 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
     // Disparar a cada 2 segundos
     if (frames != 0 && frames % (2 * FPS) == 0 && boss.hp > 0)
     {
-        if (frames != 0) PlaySound(boss.disparo);
+        if (frames != 0) PlaySound(disparoInimigo);
         
         ProjetilInimigo *aux = (ProjetilInimigo *) realloc(*projetil, (*numProjetil + 2) * sizeof(ProjetilInimigo));
 
@@ -331,8 +372,6 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
 
         if (c0 || c1 || c2)
         {
-            UnloadTexture(((*projetil)[i]).sprite);
-
             for (int j = i; j < *numProjetil - 1; j++)
             {
                 (*projetil)[j] = (*projetil)[j + 1];
@@ -363,18 +402,16 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
 
 void DrawBoss(Boss boss)
 {
-    Rectangle background = {LARG_JANELA - 200 - 10, 10, 200, 30};
-    Rectangle foreground = {LARG_JANELA - 200 - 10, 10, 200 * (boss.hp / 300.0), 30};
+    // Sprite Boss
+    if (boss.hp > 0) DrawTextureEx(spriteBoss, boss.posicao, 0, ESCALA_B, WHITE); 
+
+    // Barra de HP
     Color backgroundColor = GRAY;
     Color foregroundColor = RED;
+    Rectangle background = {LARG_JANELA - 200 - 10, 10, 200, 30};
+    Rectangle foreground = {LARG_JANELA - 200 - 10, 10, 200 * (boss.hp / 300.0), 30};
 
-    // Sprite Boss
-    if (boss.hp > 0) DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
-
-    // Draw Background
     DrawRectangleRec(background, backgroundColor);
-
-    // Draw Foreground
     DrawRectangleRec(foreground, foregroundColor);
 }
 

@@ -11,21 +11,19 @@
 
 int main()
 {
-    // Inicialização
+    // Iniciar
     InitWindow(LARG_JANELA, ALT_JANELA, "ACM vs. C-GPT669");
-    InitAudioDevice();
     SetTargetFPS(FPS);
+    InitAudioDevice();
     int play = 0;
 
     // Menu
     menu(&play);
 
     // Jogo
-    if (play)
-    {
-        start();
-    }
+    if (play) start();
 
+    // Fechar
     CloseWindow();
     return 0;
 }

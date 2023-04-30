@@ -13,7 +13,24 @@
 #define ALT_PROJETIL_INMG 2 * ESCALA 
 #define LARG_PROJETIL_INMG 2 * ESCALA
 
-void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, int *numInimigos, int *numProjetil, Explosao **explosoes, int *numExplosoes)
+Sound hitNave;
+Sound morteInimigo;
+
+void loadColisoes()
+{
+    // Hitsound
+    hitNave = LoadSound("../res/sounds/hit_nave.ogg");
+    morteInimigo = LoadSound("../res/sounds/morte_inimigo.ogg");
+}
+
+void unloadColisoes()
+{
+    // Hitsound
+    UnloadSound(hitNave);
+    UnloadSound(morteInimigo);
+}
+
+void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, int *numInimigos, int *numProjetil, Explosao **explosao, int *numExplosoes)
 {
     // Colisão Nave-Projétil
     if (GetTime() > nave->tInvencivel)
@@ -29,15 +46,13 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
             if (colisao)
             {
                 // Som
-                PlaySound(nave->hit);
+                PlaySound(hitNave);
 
                 // Invencibilidade e HP
                 nave->tInvencivel = GetTime() + 1;
                 nave->hp -= 1;
 
-                // Remover projétil
-                UnloadTexture((*projetil)[i].sprite);
-            
+                // Remover projétil            
                 for (int j = i; j < *numProjetil - 1; j++)
                 {
                     (*projetil)[j] = (*projetil)[j + 1];
@@ -80,18 +95,16 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
 
             if (colisao)
             {
-                // Som de morte
-                PlaySound((*inimigo)[i].morte);
-                
-                // Remover inimigo
-                UnloadTexture(((*inimigo)[i]).sprite);
+                // Explosão
+                inicializarExplosoes(explosao, numExplosoes, (*inimigo)[i].posicao, 2);
 
+                // Som de morte
+                PlaySound(morteInimigo);
+                
                 // Aumentar score
                 nave->score = nave->score + 100;
 
-                // Explosão
-                inicializarExplosao((*inimigo)[i].posicao, numExplosoes, explosoes, 2);
-
+                // Remover inimigo
                 for (int k = i; k < *numInimigos - 1; k++)
                 {
                     (*inimigo)[k] = (*inimigo)[k + 1];
@@ -117,9 +130,7 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
 
                 (*numInimigos)--;
                 
-                // Remover projétil
-                UnloadTexture(nave->projetil[j].sprite);
-            
+                // Remover projétil            
                 for (int k = j; k < nave->numProjetil - 1; k++)
                 {
                     nave->projetil[k] = nave->projetil[k + 1];
@@ -162,7 +173,7 @@ void checarColisoes(Nave *nave, Inimigo **inimigo, ProjetilInimigo **projetil, i
             if (colisao)
             {
                 // Som
-                PlaySound(nave->hit);
+                PlaySound(hitNave);
 
                 // Invencibilidade e HP
                 nave->tInvencivel = GetTime() + 1;
@@ -188,15 +199,13 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
             if (colisao)
             {
                 // Som
-                PlaySound(nave->hit);
+                PlaySound(hitNave);
 
                 // Invencibilidade e HP
                 nave->tInvencivel = GetTime() + 1;
                 nave->hp -= 1;
 
-                // Remover projétil
-                UnloadTexture((*projetil)[i].sprite);
-            
+                // Remover projétil            
                 for (int j = i; j < *numProjetil - 1; j++)
                 {
                     (*projetil)[j] = (*projetil)[j + 1];
@@ -237,14 +246,12 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
         if (colisao)
         {         
             // Som de hit
-            PlaySound(boss->hit);
+            PlaySound(morteInimigo);
 
             // Remover vida do boss
             boss->hp = boss->hp - 5;
             
-            // Remover projétil
-            UnloadTexture(nave->projetil[j].sprite);
-        
+            // Remover projétil        
             for (int k = j; k < nave->numProjetil - 1; k++)
             {
                 nave->projetil[k] = nave->projetil[k + 1];
@@ -282,7 +289,7 @@ void checarColisoesBoss(Nave *nave, Boss *boss, ProjetilInimigo **projetil, int 
         if (colisao)
         {
             // Som
-            PlaySound(nave->hit);
+            PlaySound(hitNave);
 
             // Invencibilidade e HP
             nave->tInvencivel = GetTime() + 1;

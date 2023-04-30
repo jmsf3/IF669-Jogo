@@ -30,8 +30,10 @@ void youWon()
     while (!WindowShouldClose())
     {
         BeginDrawing();
+
             ClearBackground(BLACK);
             DrawTextureEx(win, (Vector2) {LARG_JANELA / 2 - LARG_YW / 2, ALT_JANELA / 2 - ALT_YW / 2}, 0, ESCALA2, WHITE);
+
         EndDrawing();
     }
 
@@ -57,14 +59,14 @@ void gameOver()
 
 void faseCompleta(int *play)
 {
-    char *text[3] = {"FASE COMPLETA!", "PRESSIONE ENTER PARA CONTINUAR"};
-    Font font = LoadFont("../res/fonts/alpha_beta.png");
     Vector2 position[2];
+    Font alphaBeta = LoadFont("../res/fonts/alpha_beta.png");
+    char *text[3] = {"FASE COMPLETA!", "PRESSIONE ENTER PARA CONTINUAR"};
 
     for (int i = 0; i < 2; i++)
     {
-        position[i].x = LARG_JANELA / 2 - MeasureTextEx(font, text[i], font.baseSize * 2, 4).x / 2;
-        position[i].y = ALT_JANELA / 2 - font.baseSize + 45 * i;
+        position[i].x = LARG_JANELA / 2 - MeasureTextEx(alphaBeta, text[i], alphaBeta.baseSize * 2, 4).x / 2;
+        position[i].y = ALT_JANELA / 2 - alphaBeta.baseSize + 45 * i;
     }
 
     while (!IsKeyPressed(KEY_ENTER) && *play)
@@ -72,18 +74,24 @@ void faseCompleta(int *play)
         BeginDrawing();
 
             ClearBackground(BLACK);
-            for (int i = 0; i < 2; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
+            for (int i = 0; i < 2; i++) DrawTextEx(alphaBeta, text[i], position[i], alphaBeta.baseSize * 2, 4, RAYWHITE);
 
         EndDrawing();
 
         if (WindowShouldClose()) *play = 0;
     }
     
-    UnloadFont(font);
+    UnloadFont(alphaBeta);
 }
 
 void terceiraFase()
 {
+    // Load
+    loadColisoes();
+    loadEfeitos();
+    loadBoss();
+    loadNave();
+
     // Inicialização
     int frames = 0;
     Texture2D background = LoadTexture("../res/backgrounds/background_terra.png");
@@ -116,6 +124,7 @@ void terceiraFase()
         // Atualização
         UpdateMusicStream(music);
         SetMusicVolume(music, volume);
+
         atualizarPropulsor(&nave, frames, 'm');
         
         // Draw
@@ -135,7 +144,7 @@ void terceiraFase()
         if (WindowShouldClose()) play = 0;
     }
 
-    // Reset nos frames
+    // Frames reset
     frames = 0;
 
     // Iniciar fase
@@ -143,6 +152,7 @@ void terceiraFase()
     {
         // Atualização
         UpdateMusicStream(music);
+
         atualizarNave(&nave, frames);
         atualizarPiloto(&nave, frames);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
@@ -151,10 +161,7 @@ void terceiraFase()
         // Colisões
         checarColisoesBoss(&nave, &boss, &projetilBoss, &numProjetilBoss);
 
-        // Draw
-        BeginDrawing();
-        BeginDrawing();
-                
+        // Draw                
         BeginDrawing();           
                 
             DrawStaticBackground(background); 
@@ -173,19 +180,19 @@ void terceiraFase()
 
     // Fade-out
     transparency = 0;
+
     if (nave.hp == 0)
     {
-        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
-        PlaySound(explosao);
-        inicializarExplosao(nave.posicao, &numExplosoes, &explosoes, 1);
+        inicializarExplosoes(&explosoes, &numExplosoes, nave.posicao, 1);
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg"); PlaySound(explosao);
     }
 
     Explosao explosaoBoss;
+
     if (boss.hp == 0)
     {
-        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
         inicializarExplosaoBoss(boss.posicao, &explosaoBoss);
-        PlaySound(explosao);
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg"); PlaySound(explosao);
     }
 
     while (transparency <= 255 && play)
@@ -197,7 +204,7 @@ void terceiraFase()
         atualizarNave(&nave, frames);
         atualizarPiloto(&nave, frames);
         atualizarExplosaoBoss(&explosaoBoss);
-        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarExplosoes(&explosoes,  &numExplosoes);
         atualizarBoss(&boss, &projetilBoss, &numProjetilBoss, frames);
         atualizarProjetilBoss(boss, &projetilBoss, &numProjetilBoss, nave, frames);
 
@@ -229,20 +236,11 @@ void terceiraFase()
     UnloadTexture(background);
     UnloadMusicStream(music);
 
-    UnloadSound(nave.hit);
-    UnloadSound(nave.disparo);
-    UnloadTexture(nave.sprite);
-    for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
-
-    for (int i = 0; i < 2; i++)
-    {
-        UnloadTexture(nave.propulsor[i].sprite);
-
-        for (int j = 0; j < 4; j++) UnloadTexture(nave.propulsor[i].spritesheet[j]);
-    }
+    unloadColisoes();
+    unloadEfeitos();
+    unloadBoss();
+    unloadNave();
     
-    for (int i = 0; i < numProjetilBoss; i++) UnloadTexture(projetilBoss[i].sprite);
-
     // Free
     free(projetilBoss);
     free(nave.projetil);
@@ -261,6 +259,12 @@ void terceiraFase()
 
 void segundaFase()
 {
+    // Load
+    loadInimigos();
+    loadColisoes();
+    loadEfeitos();
+    loadNave();
+
     // Inicialização
     int frames = 0;
     int divisao = 0;
@@ -291,6 +295,7 @@ void segundaFase()
         // Atualização
         UpdateMusicStream(music);
         SetMusicVolume(music, volume);
+
         atualizarPropulsor(&nave, frames, 'm');
 
         // Draw
@@ -308,7 +313,7 @@ void segundaFase()
         if (WindowShouldClose()) play = 0;
     }
 
-    // Dar reset nos frames
+    // Frames reset
     frames = 0;
 
     // Iniciar fase
@@ -316,9 +321,10 @@ void segundaFase()
     {
         // Atualização
         UpdateMusicStream(music);
+
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
-        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarExplosoes(&explosoes,  &numExplosoes);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
 
@@ -346,11 +352,11 @@ void segundaFase()
 
     // Fade-out
     transparency = 0;
+
     if (nave.hp == 0)
     {
-        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
-        PlaySound(explosao);
-        inicializarExplosao(nave.posicao, &numExplosoes, &explosoes, 1);
+        inicializarExplosoes(&explosoes, &numExplosoes, nave.posicao, 1);
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg"); PlaySound(explosao);
     }
 
     while (transparency <= 255 && play)
@@ -361,7 +367,7 @@ void segundaFase()
 
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
-        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarExplosoes(&explosoes,  &numExplosoes);
         
         if (nave.hp == 0)
         {
@@ -394,36 +400,18 @@ void segundaFase()
     // Unload
     UnloadTexture(background);
     UnloadMusicStream(music);
-    
-    UnloadFont(nave.font);
-    UnloadSound(nave.hit);
-    UnloadSound(nave.disparo);
-    UnloadTexture(nave.sprite);
-    UnloadTexture(nave.spriteCoracao);
-    for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
 
-    for (int i = 0; i < 2; i++)
-    {
-        UnloadTexture(nave.propulsor[i].sprite);
-
-        for (int j = 0; j < 4; j++) UnloadTexture(nave.propulsor[i].spritesheet[j]);
-    }
-
-    for (int i = 0; i < numInimigos; i++)
-    {
-        UnloadTexture(inimigo[i].sprite);
-        UnloadSound(inimigo[i].disparo);
-        UnloadSound(inimigo[i].morte);
-
-        for (int j = 0; j < 2; j++) UnloadTexture(inimigo[i].spritesheet[j]);
-    }
-
-    for (int i = 0; i < numProjetilInimigo; i++) UnloadTexture(projetilInimigo[i].sprite);
+    unloadInimigos();
+    unloadColisoes();
+    unloadEfeitos();
+    unloadNave();
 
     // Free
     free(nave.projetil);
+
     free(inimigo);
     free(projetilInimigo);
+    
     free(explosoes);
 
     if (nave.hp == 0 && play)
@@ -443,6 +431,12 @@ void segundaFase()
 
 void primeiraFase()
 {
+    // Load
+    loadInimigos();
+    loadColisoes();
+    loadEfeitos();
+    loadNave();
+
     // Inicialização
     int frames = 0;
     Texture2D background = LoadTexture("../res/backgrounds/background_espaco.png");
@@ -477,7 +471,7 @@ void primeiraFase()
         BeginDrawing();
 
             DrawStaticBackground(background);
-            DrawTextureEx(nave.sprite, nave.posicao, 0, ESCALA1, WHITE);
+            DrawTextureEx(nave.spriteNave, nave.posicao, 0, ESCALA1, WHITE);
             DrawRectangle(0, 0, 1000, 600, (Color) {0, 0, 0, transparency});
 
         EndDrawing();
@@ -488,20 +482,21 @@ void primeiraFase()
     }
 
     // Instruções
-    char *text[3] = {"SETAS - MOVIMENTAR", "ESPACO - DISPARAR", "ENTER PARA INICIAR"};
-    Font font = LoadFont("../res/fonts/alpha_beta.png");
     Vector2 position[3];
+    Font alphaBeta = LoadFont("../res/fonts/alpha_beta.png");
+    char *text[3] = {"SETAS - MOVIMENTAR", "ESPACO - DISPARAR", "ENTER PARA INICIAR"};
 
     for (int i = 0; i < 3; i++)
     {
-        position[i].x = LARG_JANELA / 2 - MeasureTextEx(font, text[i], font.baseSize * 2, 4).x / 2;
-        position[i].y = 60 + font.baseSize + 45 * i;
+        position[i].x = LARG_JANELA / 2 - MeasureTextEx(alphaBeta, text[i], alphaBeta.baseSize * 2, 4).x / 2;
+        position[i].y = 60 + alphaBeta.baseSize + 45 * i;
     }
 
     while (!IsKeyPressed(KEY_ENTER) && play)
     {
         // Atualização
         UpdateMusicStream(music);
+
         atualizarNave(&nave, frames);
         atualizarPiloto(&nave, frames);
 
@@ -509,9 +504,11 @@ void primeiraFase()
         BeginDrawing();
 
             DrawStaticBackground(background);
+
             DrawShip(nave);
             DrawShipProjectile(nave);
-            for (int i = 0; i < 3; i++) DrawTextEx(font, text[i], position[i], font.baseSize * 2, 4, RAYWHITE);
+
+            for (int i = 0; i < 3; i++) DrawTextEx(alphaBeta, text[i], position[i], alphaBeta.baseSize * 2, 4, RAYWHITE);
         
         EndDrawing();
 
@@ -519,18 +516,20 @@ void primeiraFase()
         if (WindowShouldClose()) play = 0;
     }
 
-    // Dar reset nos frames
+    UnloadFont(alphaBeta);
+
+    // Frames reset
     frames = 0;
-    UnloadFont(font);
 
     // Iniciar fase
     while (nave.hp > 0 && frames < TEMPO_FASE * FPS && play)
     {
         // Atualização
         UpdateMusicStream(music);
+
         atualizarNave(&nave, frames);
         atualizarPiloto(&nave, frames);
-        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarExplosoes(&explosoes,  &numExplosoes);
         atualizarInimigos(&inimigo, &numInimigos, frames);
         atualizarProjetilInimigo(inimigo, numInimigos, nave, &projetilInimigo, &numProjetilInimigo, frames);
  
@@ -558,11 +557,11 @@ void primeiraFase()
 
     // Fade-out
     transparency = 0;
+
     if (nave.hp == 0)
     {
-        Sound explosao = LoadSound("../res/sounds/explosao.ogg");
-        PlaySound(explosao);
-        inicializarExplosao(nave.posicao, &numExplosoes, &explosoes, 1);
+        inicializarExplosoes(&explosoes, &numExplosoes, nave.posicao, 1);
+        Sound explosao = LoadSound("../res/sounds/explosao.ogg"); PlaySound(explosao);
     }
 
     while (transparency <= 255 && play)
@@ -574,7 +573,7 @@ void primeiraFase()
         atualizarNave(&nave, frames);
         atualizarPiloto(&nave, frames);
         atualizarPiloto(&nave, frames);
-        atualizarExplosao(&numExplosoes, &explosoes);
+        atualizarExplosoes(&explosoes, &numExplosoes);
 
         if (nave.hp == 0)
         {
@@ -608,35 +607,17 @@ void primeiraFase()
     UnloadTexture(background);
     UnloadMusicStream(music);
 
-    UnloadFont(nave.font);
-    UnloadSound(nave.hit);
-    UnloadSound(nave.disparo);
-    UnloadTexture(nave.sprite);
-    UnloadTexture(nave.spriteCoracao);
-    for (int i = 0; i < 3; i++) UnloadTexture(nave.spritesheet[i]);
-
-    for (int i = 0; i < 2; i++)
-    {
-        UnloadTexture(nave.propulsor[i].sprite);
-
-        for (int j = 0; j < 4; j++) UnloadTexture(nave.propulsor[i].spritesheet[j]);
-    }
-
-    for (int i = 0; i < numInimigos; i++)
-    {
-        UnloadTexture(inimigo[i].sprite);
-        UnloadSound(inimigo[i].disparo);
-        UnloadSound(inimigo[i].morte);
-
-        for (int j = 0; j < 2; j++) UnloadTexture(inimigo[i].spritesheet[j]);
-    }
-
-    for (int i = 0; i < numProjetilInimigo; i++) UnloadTexture(projetilInimigo[i].sprite);
+    unloadInimigos();
+    unloadColisoes();
+    unloadEfeitos();
+    unloadNave();
 
     // Free
     free(nave.projetil);
+    
     free(inimigo);
     free(projetilInimigo);
+
     free(explosoes);
 
     if (nave.hp == 0 && play)

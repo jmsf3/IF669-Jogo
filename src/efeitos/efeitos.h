@@ -5,14 +5,18 @@
 
 typedef struct
 {
-    Texture2D spritesheet[4]; // Spritesheet
-    Rectangle dimensoes;
-    Vector2 centroSprite;
+    int tipo;
     double tempo;
+    Vector2 centro;
+    Texture2D sprite;
+    Rectangle dimensoes;
 } Explosao;
 
-void inicializarExplosao(Vector2 posicao, int *numExplosoes, Explosao **explosoes, int tipo);
-void atualizarExplosao(int *numExplosoes, Explosao **explosoes);
+void loadEfeitos();
+void unloadEfeitos();
+
+void inicializarExplosoes(Explosao **explosao, int *numExplosoes, Vector2 posicao, int tipo);
+void atualizarExplosoes(Explosao **explosao, int *numExplosoes);
 void DrawExplosoes(Explosao *explosoes, int numExplosoes);
 
 void inicializarExplosaoBoss(Vector2 posicao, Explosao *explosao);
