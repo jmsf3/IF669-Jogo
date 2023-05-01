@@ -367,6 +367,7 @@ void segundaFase()
 
         atualizarNave(&nave, frames);
         atualizarBackground(&divisao);
+        atualizarPiloto(&nave, frames);
         atualizarExplosoes(&explosoes,  &numExplosoes);
         
         if (nave.hp == 0)
@@ -571,7 +572,6 @@ void primeiraFase()
         SetMusicVolume(music, volume);
 
         atualizarNave(&nave, frames);
-        atualizarPiloto(&nave, frames);
         atualizarPiloto(&nave, frames);
         atualizarExplosoes(&explosoes, &numExplosoes);
 
