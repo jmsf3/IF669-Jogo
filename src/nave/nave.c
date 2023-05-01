@@ -158,7 +158,6 @@ void atualizarPropulsor(Nave *nave, int frames, char spriteNave)
     {
         nave->propulsor[0].posicao.x = nave->posicao.x + 2 * ESCALA;
         nave->propulsor[1].posicao.x = nave->posicao.x + 4 * ESCALA;
-       
     }
     else if (spriteNave == 'r')
     {
