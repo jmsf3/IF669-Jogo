@@ -308,6 +308,7 @@ void atualizarProjetilInimigo(Inimigo *inimigos, int numInimigos, Nave nave, Pro
 void inicializarBoss(Boss *boss)
 {
     boss->hp = 300;
+    boss->sprite = spriteBoss;
     boss->velocidade = VEL_BOSS;
     boss->direcao = (Vector2) {1,1};
     boss->posicao = (Vector2) {LARG_JANELA / 2 - LARG_BOSS / 2, ALT_JANELA / 4 - ALT_BOSS / 2};
@@ -403,7 +404,7 @@ void atualizarProjetilBoss(Boss boss,ProjetilInimigo **projetil, int *numProjeti
 void DrawBoss(Boss boss)
 {
     // Sprite Boss
-    if (boss.hp > 0) DrawTextureEx(spriteBoss, boss.posicao, 0, ESCALA_B, WHITE); 
+    if (boss.hp > 0) DrawTextureEx(boss.sprite, boss.posicao, 0, ESCALA_B, WHITE); 
 
     // Barra de HP
     Color backgroundColor = GRAY;
